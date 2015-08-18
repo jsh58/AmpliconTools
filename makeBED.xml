@@ -1,0 +1,19 @@
+<tool id="makebed" name="Make a BED file">
+  <description> using amplicon specifications</description>
+  <command interpreter="perl">
+    makeBED.pl "$in" "$out"
+  </command>
+  <inputs>
+    <param format="tabular" name="in" type="data" label="File listing amplicon specifications" help="Header line should contain columns &quot;Assay_Name&quot;, &quot;F-sp&quot;, &quot;R-sp&quot;, &quot;Chr&quot;, &quot;From&quot;, and &quot;To&quot;."/>
+  </inputs>
+  <outputs>
+    <data format="bed" name="out" label="${tool.name} on ${on_string}"/>
+  </outputs>
+
+  <help>
+This tool constructs a BED file listing primer locations from
+a file listing amplicon specifications.
+
+  </help>
+
+</tool>

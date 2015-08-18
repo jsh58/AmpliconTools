@@ -1,0 +1,164 @@
+<tool id="editsam" name="Edit a SAM file">
+  <description> of alternative mappings and length-variant realignments</description>
+  <command>
+    checkAltMapping.pl "$fastq" "$sam" "$prim" "$bed" "$gen.fields.path" temp "$pct"
+    #if str( $log_opt ) == "true":
+      "$align_log"
+    #end if
+    ;
+
+    filterSAM.pl "$fastq" "$bed" temp "$sam" "$out"
+    #if str( $realign.realign_opt ) == "yes":
+      "$realign.real"
+      #if str( $realign.realignlog_opt ) == "true":
+        "$realign_log"
+      #else
+        None
+      #end if
+      "$realign.pct"
+    #end if
+
+  </command>
+  <inputs>
+    <param format="fastq" name="fastq" type="data" label="Reads that have been mapped" help="Must have removed-primer information in the header, of the format produced by the tool &quot;Remove PCR primers&quot;. Other than primer removal, no other truncations of the reads should have occurred (e.g. quality-based trimming)."/>
+    <param format="sam" name="sam" type="data" label="Mapping file" help="Should be unsorted; each read's mapping(s) (primary and secondary) should be listed consecutively. No supplementary alignments are allowed. Soft-clipping (local alignments) should be avoided as well. Should contain optional fields &quot;AS&quot; (alignment score) and &quot;XM&quot; (number of substitutions) (Bowtie2-style format)."/>
+    <param format="csv" name="prim" type="data" label="File listing primer and target sequences" help="Of the format produced by the tool &quot;Retrieve primers and target sequences&quot;"/>
+    <param format="bed" name="bed" type="data" label="File listing primer locations"/>
+
+    <param format="fasta" name="gen" type="select" label="Reference genome">
+      <options from_data_table="all_fasta"/>
+    </param>
+    <param name="pct" type="float" value="0.75" min="0" max="1" label="Primer match score threshold (0-1)" help="Primer scores of at least this value will be considered a match. See &quot;Primer matching score&quot; below for more information."/>
+    <param name="log_opt" type="boolean" truevalue="true" falsevalue="false" checked="false" label="Would you like a log file that lists primer-genome alignments and scores?"/>
+
+    <conditional name="realign">
+      <param name="realign_opt" type="select" label="Would you like the SAM to be edited for length variants?">
+        <option value="no" selected="True">No</option>
+        <option value="yes">Yes</option>
+      </param>
+      <when value="yes">
+        <param format="tabular" name="real" type="data" label="Aligned length-variant reads" help="Alignments output from the tool &quot;Align length-variant reads&quot;"/>
+        <param name="pct" type="float" value="0.75" min="0" max="1" label="Maximum primer match score threshold for external in/dels (0-1)" help="Primer scores above this value will be considered good enough matches to explain the length variant as an artifact. See &quot;External in/dels&quot; and &quot;Primer matching score&quot; sections below for more information."/>
+        <param name="realignlog_opt" type="boolean" truevalue="true" falsevalue="false" checked="false" label="Would you like a log file of the realignments?"/>
+      </when>
+      <when value="no"/>
+    </conditional>
+
+  </inputs>
+
+  <outputs>
+    <data format="sam" name="out" label="${tool.name} on ${on_string}: edited SAM file"/>
+    <data format="tabular" name="align_log" label="${tool.name} on ${on_string}: primer-genome alignments log file">
+      <filter>log_opt is True</filter>
+    </data>
+    <data format="tabular" name="realign_log" label="${tool.name} on ${on_string}: realignment log file">
+      <filter>realign['realign_opt'] == "yes" and realign['realignlog_opt'] is True</filter>
+    </data>
+  </outputs>
+
+  <help>
+This tool checks read alignments that are to locations other than what is
+expected, given the primers removed from the read. It compares the regions
+corresponding to where the primers would have bound at that alternative site
+to the actual primer sequences (see *Primer matching score* below). All such
+alternative mappings (primary and secondary) that are judged as not legitimate
+are removed from the SAM file.
+
+In addition, if a secondary mapping to the expected location is equivalent
+(based on alignment score) to the primary mapping, the secondary map is
+promoted to primary. This is because both Bowtie2 and BWA, when they find two
+(or more) equivalent maps for a read, randomly choose one as primary. This
+tool selects the expected location as the primary map, in order to provide
+consistency to the SAM file. Of course, this does not mean that the read
+definitely originated from this location as opposed to the alternative.
+
+This tool can further edit the SAM file for length-variant realignments
+(see below).
+
+-----
+
+**Length-variant realignments**
+
+This tool uses the alignment output from the tool *Align length-variant reads*.
+It begins by throwing out some realignments -- external in/del artifacts (see
+*External in/dels* below), and those that have too many substitutions
+(this evaluation is based on Bowtie2's default end-to-end alignment score
+threshold [-0.6*length - 0.6] and is not parameterized -- cf. lines 183-192 of
+filterSAM.pl).
+
+Each remaining realignment, if not identical to the corresponding read mapping
+already in the SAM file, is added to the SAM. It is labelled as the primary
+map if it is better than the previous primary map, with respect to the number of
+substitutions (or if it is equal and external -- see *External in/dels* below).
+Otherwise, it is listed as a secondary map.
+
+Each realignment's SAM record lists a mapping quality of 255 ("unavailable"),
+and the alignment score (AS) is calculated as the number of substitutions
+multiplied by -5, minus 1 for the in/del (regardless of the actual length).
+
+The output realignment log file gives counts for each length variant. Each
+realignment is classified into one of the following categories::
+
+  Better         Realignment is better than original map
+  New            Realignment is good; read was originally unmapped
+  ExternalInDel  Realignment has an external in/del that was judged to be an artifact
+  Invalid        Realignment has too many substitutions
+  Worse          Realignment is worse than original map
+  Same/Equiv     Realignment has the same in/del as the original map
+  Filtered       Read does not appear in SAM file
+
+-----
+
+**External in/dels**
+
+Insertions or deletions that appear at the 5' or 3' end of a read are called
+*external*. External in/dels may be an artifact of a PCR primer mispriming on
+a similar sequence near the expected location. For this reason, the tool
+*Align length-variant reads* evaluates external in/dels for such a primer
+match and reports the score (see *Primer matching score* below) in the
+alignment output file.
+
+This tool will throw out a realignment with an external in/del if the
+primer match score is above the specified threshold and thus high enough to
+explain the length variant as an artifact.
+
+Legitimate realignments of reads with external in/dels are given precedence
+over equivalent mappings in the original mapping file. This is because
+external in/dels are unlikely to lead to variant calls by a conventional
+approach. With an external deletion, the gap would not be apparent to a read
+aligner, and an external insertion may be a matching repeat.
+
+-----
+
+**Primer matching score**
+
+To evaluate whether a primer is likely to bind to a given DNA segment, the
+following weighted scoring function was developed. The last 20 bases of the
+primer are numbered 1-20, with #20 at the 3' end. Each base is valued
+according to its position::
+
+  Position   Value
+    1-10     2*pos
+   11-19     3*pos
+     20      5*pos
+   other       1
+
+The values of the matches between the primer and the DNA segment are summed
+and divided by the sum of the values of all positions. This gives the
+score, on a scale of 0-1, with 1 representing a perfect match.
+
+Primers shorter than 20bp are numbered to leave off the lower positions
+(e.g. an 18bp primer is numbered 3-20). Primers longer than 20bp have all
+positions upstream of the last 20bp valued at 1.
+
+For example::
+
+  primer  ACGTACGTACGTACGTACGTACG
+  genome  TGGTACTTAGGGACGCACGTGCG
+            **** ** * *** **** **
+
+The score of this primer match is 483 / 618 = 0.782.
+
+  </help>
+
+</tool>

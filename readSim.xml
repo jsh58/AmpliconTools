@@ -1,0 +1,177 @@
+<tool id="readsim" name="Simulate paired-end reads">
+  <description> for a set of amplicons</description>
+  <command interpreter="perl">
+    readSim.pl "$ipc" "$prim" "$gen.fields.path" "$out1" "$out2"
+
+    ## optional parameters
+    #if str( $opt.opt_selector ) == "yes":
+      "$opt.num" "$opt.len" "$opt.score" "$opt.lengths"
+
+      #if str( $opt.bedsel.bed_selector ) == "yes":
+        "$opt.bedsel.bed"
+      #end if
+      #if str( $opt.varsel.var_selector ) == "yes":
+        #if str( $opt.bedsel.bed_selector ) == "no":
+          None
+        #end if
+        "$opt.varsel.var" "$opt.varsel.pct"
+      #end if
+
+    #end if
+
+  </command>
+  <inputs>
+    <param format="text" name="ipc" type="data" label="File listing potential primer matches" help="Output from ipcress"/>
+    <param format="tabular" name="prim" type="data" label="File listing primer sequences" help="Input to ipcress"/>
+    <param format="fasta" name="gen" type="select" label="Reference genome">
+      <options from_data_table="all_fasta"/>
+    </param>
+
+    <conditional name="opt">
+      <param name="opt_selector" type="select" label="Would you like to set additional parameters?">
+        <option value="no" selected="True">No</option>
+        <option value="yes">Yes</option>
+      </param>
+      <when value="yes">
+        <param name="len" type="integer" value="100" min="1" label="Length of reads to simulate" help="Default: 100"/>
+        <param name="num" type="integer" value="1000" min="1" label="Number of reads to simulate for each perfect match score" help="Non-perfect match scores will be scaled using &quot;Minimum primer matching score&quot; parameter. Default: 1000"/>
+        <param name="score" type="float" value="0.75" min="0" max="0.9999999" label="Minimum primer matching score" help="Default: 0.75"/>
+        <param name="lengths" type="text" value="0,100000" label="Range of allowed amplicon lengths" help="Minimum and maximum, comma-separated. Default: 0,100000"/>
+
+        <conditional name="bedsel">
+          <param name="bed_selector" type="select" label="Would you like to specify a BED file?" help="Used to exclude potential amplicons that overlap, but do not exactly match, the expected target.">
+            <option value="no" selected="True">No</option>
+            <option value="yes">Yes</option>
+          </param>
+          <when value="yes">
+            <param format="bed" name="bed" type="data" label="File listing expected amplicon locations"/>
+          </when>
+          <when value="no"/>
+        </conditional>
+
+        <conditional name="varsel">
+          <param name="var_selector" type="select" label="Would you like to include variants?">
+            <option value="no" selected="True">No</option>
+            <option value="yes">Yes</option>
+          </param>
+          <when value="yes">
+            <param format="tabular" name="var" type="data" label="File listing variants to make in the reads" help="See &quot;Variants&quot; below for formatting information"/>
+            <param name="pct" type="integer" value="10" min="0" max="100" label="Percent of reads to make variants" help="Default: 10"/>
+          </when>
+          <when value="no"/>
+        </conditional>
+
+      </when>
+      <when value="no"/>
+    </conditional>
+
+  </inputs>
+
+  <outputs>
+    <data format="fastq" name="out1" label="${tool.name} on ${on_string}: PE reads #1"/>
+    <data format="fastq" name="out2" label="${tool.name} on ${on_string}: PE reads #2"/>
+  </outputs>
+
+  <help>
+This tool simulates paired-end reads. It uses the output from a program such as
+ipcress (part of the exonerate package), which finds matching sites in a genome
+for PCR primers.
+
+The simulator removes potential amplicons that fall outside of the specified
+length range, as well as those that overlap the designed amplicon listed in the
+BED file. The primers of every remaining amplicon are aligned to the
+corresponding genome segment and scored using a weighted function (see *Primer
+matching score* below). An amplicon's primers must both score at least the
+specified minimum to be further considered.
+
+To calculate the number of reads, the primer match scores are linearly scaled
+such that the minimum becomes 0.01, and reads are generated at a rate
+proportional to the product of the scaled scores. For example, with the default
+minimum score of 0.75, scores of 0.90 and 0.85 are scaled to 0.604 and 0.406.
+Then, with the default number of reads to simulate at 1000, 245 reads will be
+generated for this amplicon.
+
+The paired-end reads are constructed using the primer sequences and the genomic
+sequence identified by ipcress, using the specified length. Reads from shorter
+amplicons have an "adapter" sequence added to their 3' ends. All quality scores
+are given as 'H'. The FASTQ headers include the amplicon name and the correct
+origin (chromosome and position) of the reads. For example, given the following
+ipcress record::
+
+  ipcress: chr3 CEG_2 106 A 109432405 2 B 109432493 0 forward
+
+a set of simulated, paired-end 85bp reads would be::
+
+  @read0 amp=CEG_2 ref=chr3 pos=109432405 len=106 str=+
+  CCAGGGAAAATTTGCTGATGTTCCAGAATATTCTTAGTTATTAAATTCTAGCAGGTGACCATAAACAAATAGCTTCATTTATTCA
+  +
+  HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH
+
+  @read0 amp=CEG_2 ref=chr3 pos=109432405 len=106 str=+
+  CCCCCTCTACTTTTTACCTTTCTTGAATAAATGAAGCTATTTGTTTATGGTCACCTGCTAGAATTTAATAACTAAGAATATTCTG
+  +
+  HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH
+
+-----
+
+**Variants**
+
+The simulator can incorporate variants into the reads at the specified
+frequency. These variants can include substitutions and in/dels of any size.
+Only variants located within an amplicon's target region affect its reads, not
+those within the primer regions -- this is what one would expect from an
+actual PCR.
+
+The file listing the variants should contain the chromosome, position (1-based,
+like in a VCF file), reference base(s), and variant base(s), all tab-delimited.
+The variants should be listed in primitive style (no MNPs or complex variants).
+For example::
+
+  chr3    109432461   T    C
+  chr17   41343130    GC   G
+  chrX    111077593   A    AACCTCCG
+
+The simulator will complain if the reference base(s) do not match the
+genome sequence.
+
+The FASTQ header lists the variant(s) in the read::
+
+  @read0 amp=CEG_2 ref=chr3 pos=109432405 len=106 str=+ var=109432461,T>C;
+  CCAGGGAAAATTTGCTGATGTTCCAGAATATTCTTAGTTATTAAATTCTAGCAGGCGACCATAAACAAATAGCTTCATTTATTCA
+  +
+  HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH
+
+-----
+
+**Primer matching score**
+
+To evaluate whether a primer is likely to bind to a given DNA segment, the
+following weighted scoring function was developed. The last 20 bases of the
+primer are numbered 1-20, with #20 at the 3' end. Each base is valued
+according to its position::
+
+  Position   Value
+    1-10     2*pos
+   11-19     3*pos
+     20      5*pos
+   other       1
+
+The values of the matches between the primer and the DNA segment are summed
+and divided by the sum of the values of all positions. This gives the
+score, on a scale of 0-1, with 1 representing a perfect match.
+
+Primers shorter than 20bp are numbered to leave off the lower positions
+(e.g. an 18bp primer is numbered 3-20). Primers longer than 20bp have all
+positions upstream of the last 20bp valued at 1.
+
+For example::
+
+  primer  ACGTACGTACGTACGTACGTACG
+  genome  TGGTACTTAGGGACGCACGTGCG
+            **** ** * *** **** **
+
+The score of this primer match is 483 / 618 = 0.782.
+
+  </help>
+
+</tool>

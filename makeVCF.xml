@@ -1,0 +1,150 @@
+<tool id="makevcf" name="Construct a VCF">
+  <description> using outputs from VarScan</description>
+  <command>
+    makeVCF.pl "$snp" "$ind" "$pil" temp0 "$qual" "$lab";
+
+    ## add HP to VCF
+    #if str( $addhp.addhp_opt ) == "yes":
+      addHPtoVCF.pl temp0 "$addhp.gen.fields.path" temp1
+      #if str( $addhp.log_opt ) == "true":
+        "$log"
+      #end if
+      ; mv temp1 temp0;
+    #end if
+
+    ## filter VCF
+    #if str( $filter.filter_opt ) == "yes":
+      filterVCF.pl temp0 "$out"
+      #if str( $filter.bedfile.bed_opt ) == "yes":
+        -b "$filter.bedfile.bed"
+      #end if
+      -d "$filter.d" -o "$filter.o"
+      -a "$filter.a" -i "$filter.i"
+      -m "$filter.m"
+      #if str( $addhp.addhp_opt ) == "yes" and str( $filter.p ) != "":
+        -p "$filter.p"
+      #end if
+    #else
+      mv temp0 "$out"
+    #end if
+
+  </command>
+  <inputs>
+    <param format="tabular" name="snp" type="data" label="Output from VarScan pileup2snp"/>
+    <param format="tabular" name="ind" type="data" label="Output from VarScan pileup2indel"/>
+    <param format="pileup" name="pil" type="data" label="Pileup file used with VarScan"/>
+    <param name="qual" type="integer" value="15" min="0" label="Minimum quality score used with VarScan"/>
+    <param name="lab" type="text" value="sample" label="Sample name for header of VCF"/>
+
+    <!-- addHPtoVCF options -->
+    <conditional name="addhp">
+      <param name="addhp_opt" type="select" label="Would you like to have lengths of adjacent homopolymers for each variant added to the VCF?">
+        <option value="no" selected="True">No</option>
+        <option value="yes">Yes</option>
+      </param>
+      <when value="yes">
+        <param format="fasta" name="gen" type="select" label="Reference genome">
+          <options from_data_table="all_fasta"/>
+        </param>
+        <param name="log_opt" type="boolean" truevalue="true" falsevalue="false" checked="false" label="Would you like an output log file?" help="The log file lists information about each variant, including the genome segments analyzed."/>
+      </when>
+      <when value="no"/>
+    </conditional>
+
+    <!-- variant filtering options -->
+    <conditional name="filter">
+      <param name="filter_opt" type="select" label="Would you like to select variant filtering criteria?">
+        <option value="no" selected="True">No</option>
+        <option value="yes">Yes</option>
+      </param>
+      <when value="yes">
+        <conditional name="bedfile">
+          <param name="bed_opt" type="select" label="Would you like to remove variants from outside the amplicon target regions?">
+            <option value="no" selected="True">No</option>
+            <option value="yes">Yes</option>
+          </param>
+          <when value="yes">
+            <param format="bed" name="bed" type="data" label="File listing primer locations"/>
+          </when>
+          <when value="no"/>
+        </conditional>
+        <param name="d" type="integer" value="0" min="0" label="Minimum read depth"/>
+        <param name="o" type="integer" value="0" min="0" label="Minimum number of variant allele observations"/>
+        <param name="a" type="float" value="0" min="0" max="1.01" label="Minimum allele frequency"/>
+        <param name="i" type="float" value="0" min="0" max="1.01" label="Minimum allele frequency for in/dels" help="Should be used only if a threshold higher than the &quot;Minimum allele frequency&quot; above is desired."/>
+        <param name="m" type="float" value="0" min="0" max="1.01" label="Minimum allele frequency for C:G&gt;T:A substitutions" help="Possible deamination artifacts. Should be used only if a threshold higher than the &quot;Minimum allele frequency&quot; above is desired."/>
+        <param name="p" type="text" value="" label="Minimum allele frequency for variants in homopolymer runs" help="For example, specifying &quot;5, 0.2&quot; means that a variant adjacent to homopolymer of length 5 (or longer) must have an allele frequency of at least 0.2. Multiple HP ranges can be chosen -- see &quot;Filtering criteria&quot; section below for more information. Should be used only if lengths of adjacent homopolymers were added to the VCF (option above)."/>
+      </when>
+      <when value="no"/>
+    </conditional>
+
+  </inputs>
+
+  <outputs>
+    <data format="vcf" name="out" label="${tool.name} on ${on_string}: VCF file"/>
+    <data format="tabular" name="log" label="${tool.name} on ${on_string}: HP log file">
+      <filter>addhp['addhp_opt'] == "yes" and addhp['log_opt'] is True</filter>
+    </data>
+  </outputs>
+
+  <help>
+This tool constructs a single VCF from the outputs of the VarScan commands
+"pileup2snp" and "pileup2indel". In addition, it can add lengths of adjacent
+homopolymers for each variant (see "Adjacent homopolymer" below), and filter
+variants according to various criteria (see "Filtering criteria" below).
+
+-----
+
+**Adjacent homopolymer**
+
+When this option is selected, the tool adds an "HP=x" info field to each
+variant, where x is the length of the homopolymer adjacent to a variant
+that matches it.
+
+For example, given the following C&gt;T variant::
+
+  TCAGTCATTTCACACCAGCAA
+  TCAGTCATTTTACACCAGCAA
+            *
+
+The variant base, T, is adjacent to a homopolymer of three Ts, so the new VCF
+record will have "HP=3" in it.
+
+Note that, except for deletions, the variant base must match the homopolymer. 
+That is, if the above variant had been C&gt;G, the result would have been "HP=0".
+
+Complex variants containing nonmatching variant bases are not evaluated, and
+are given the default "HP=0".
+
+-----
+
+**Filtering criteria**
+
+Depending on the criteria selected, variants can be removed for falling
+outside of the amplicons' target regions, or for not meeting minimum read
+depth, observation, or frequency values. One can specify a higher allele
+frequency threshold for in/dels, and also for C:G&gt;T:A substitutions,
+which are associated with deamination artifacts.
+
+One can also specify a higher frequency threshold for variants adjacent to
+homopolymers. To do so, one should list the homopolymer length, followed by
+the minimum allele frequency (or two values, for substitutions and in/dels
+separately), comma-separated. For example::
+
+  7, 0.5, 1.01
+
+This removes substitutions with HP &gt;= 7 and AF &lt; 0.5, and *all*
+in/dels with HP &gt;= 7 (because none of them will have a frequency of at
+least 1.01).
+
+Multiple HP ranges can be chosen (colon-separated)::
+
+  5, 0.1 , 0.2 : 8, 0.4, 0.5
+
+For variants with HP of 5, 6, or 7: substitutions with AB &lt; 0.1 and
+in/dels with AB &lt; 0.2 are removed. For variants with HP of 8 or greater:
+substitutions with AB &lt; 0.4 and in/dels with AB &lt; 0.5 are removed.
+
+  </help>
+
+</tool>

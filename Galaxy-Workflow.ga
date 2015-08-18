@@ -1,0 +1,632 @@
+{
+    "a_galaxy_workflow": "true", 
+    "annotation": "", 
+    "format-version": "0.1", 
+    "name": "Variant detection in amplicon-targeted resequencing", 
+    "steps": {
+        "0": {
+            "annotation": "", 
+            "id": 0, 
+            "input_connections": {}, 
+            "inputs": [
+                {
+                    "description": "", 
+                    "name": "Input Dataset"
+                }
+            ], 
+            "name": "Input dataset", 
+            "outputs": [], 
+            "position": {
+                "left": 200, 
+                "top": 200
+            }, 
+            "tool_errors": null, 
+            "tool_id": null, 
+            "tool_state": "{\"name\": \"Input Dataset\"}", 
+            "tool_version": null, 
+            "type": "data_input", 
+            "user_outputs": []
+        }, 
+        "1": {
+            "annotation": "", 
+            "id": 1, 
+            "input_connections": {}, 
+            "inputs": [
+                {
+                    "description": "", 
+                    "name": "Input Dataset"
+                }
+            ], 
+            "name": "Input dataset", 
+            "outputs": [], 
+            "position": {
+                "left": 200, 
+                "top": 320
+            }, 
+            "tool_errors": null, 
+            "tool_id": null, 
+            "tool_state": "{\"name\": \"Input Dataset\"}", 
+            "tool_version": null, 
+            "type": "data_input", 
+            "user_outputs": []
+        }, 
+        "2": {
+            "annotation": "", 
+            "id": 2, 
+            "input_connections": {}, 
+            "inputs": [
+                {
+                    "description": "", 
+                    "name": "Input Dataset"
+                }
+            ], 
+            "name": "Input dataset", 
+            "outputs": [], 
+            "position": {
+                "left": 200, 
+                "top": 440
+            }, 
+            "tool_errors": null, 
+            "tool_id": null, 
+            "tool_state": "{\"name\": \"Input Dataset\"}", 
+            "tool_version": null, 
+            "type": "data_input", 
+            "user_outputs": []
+        }, 
+        "3": {
+            "annotation": "", 
+            "id": 3, 
+            "input_connections": {
+                "bed": {
+                    "id": 2, 
+                    "output_name": "output"
+                }
+            }, 
+            "inputs": [], 
+            "name": "Retrieve primers and target sequences", 
+            "outputs": [
+                {
+                    "name": "output", 
+                    "type": "csv"
+                }
+            ], 
+            "position": {
+                "left": 420, 
+                "top": 200
+            }, 
+            "post_job_actions": {
+                "HideDatasetActionoutput": {
+                    "action_arguments": {}, 
+                    "action_type": "HideDatasetAction", 
+                    "output_name": "output"
+                }
+            }, 
+            "tool_errors": null, 
+            "tool_id": "getprimers", 
+            "tool_state": "{\"__page__\": 0, \"__rerun_remap_job_id__\": null, \"chromInfo\": \"\\\"/home/john/galaxy-dist/tool-data/shared/ucsc/chrom/?.len\\\"\", \"gen\": \"{\\\"__class__\\\": \\\"UnvalidatedValue\\\", \\\"value\\\": \\\"/home/john/Downloads/Homo_sapiens/UCSC/hg19/Sequence/WholeGenomeFasta/genome.fa\\\"}\", \"bed\": \"null\"}", 
+            "tool_version": "1.0.0", 
+            "type": "tool", 
+            "user_outputs": []
+        }, 
+        "4": {
+            "annotation": "", 
+            "id": 4, 
+            "input_connections": {
+                "in1": {
+                    "id": 0, 
+                    "output_name": "output"
+                }, 
+                "in2": {
+                    "id": 1, 
+                    "output_name": "output"
+                }, 
+                "prim": {
+                    "id": 3, 
+                    "output_name": "output"
+                }, 
+                "single|removePrimer2|bed2|bedfile2": {
+                    "id": 2, 
+                    "output_name": "output"
+                }
+            }, 
+            "inputs": [], 
+            "name": "Preprocess reads", 
+            "outputs": [
+                {
+                    "name": "joined", 
+                    "type": "fastq"
+                }, 
+                {
+                    "name": "comb", 
+                    "type": "fastq"
+                }, 
+                {
+                    "name": "stitchlog", 
+                    "type": "tabular"
+                }, 
+                {
+                    "name": "dovelog", 
+                    "type": "tabular"
+                }, 
+                {
+                    "name": "removePrimerlog", 
+                    "type": "tabular"
+                }, 
+                {
+                    "name": "removePrimer1log", 
+                    "type": "tabular"
+                }, 
+                {
+                    "name": "removePrimer2log", 
+                    "type": "tabular"
+                }
+            ], 
+            "position": {
+                "left": 640, 
+                "top": 200
+            }, 
+            "post_job_actions": {
+                "HideDatasetActioncomb": {
+                    "action_arguments": {}, 
+                    "action_type": "HideDatasetAction", 
+                    "output_name": "comb"
+                }, 
+                "HideDatasetActiondovelog": {
+                    "action_arguments": {}, 
+                    "action_type": "HideDatasetAction", 
+                    "output_name": "dovelog"
+                }, 
+                "HideDatasetActionjoined": {
+                    "action_arguments": {}, 
+                    "action_type": "HideDatasetAction", 
+                    "output_name": "joined"
+                }, 
+                "HideDatasetActionremovePrimer1log": {
+                    "action_arguments": {}, 
+                    "action_type": "HideDatasetAction", 
+                    "output_name": "removePrimer1log"
+                }, 
+                "HideDatasetActionremovePrimer2log": {
+                    "action_arguments": {}, 
+                    "action_type": "HideDatasetAction", 
+                    "output_name": "removePrimer2log"
+                }, 
+                "HideDatasetActionremovePrimerlog": {
+                    "action_arguments": {}, 
+                    "action_type": "HideDatasetAction", 
+                    "output_name": "removePrimerlog"
+                }, 
+                "HideDatasetActionstitchlog": {
+                    "action_arguments": {}, 
+                    "action_type": "HideDatasetAction", 
+                    "output_name": "stitchlog"
+                }
+            }, 
+            "tool_errors": null, 
+            "tool_id": "preprocess", 
+            "tool_state": "{\"__page__\": 0, \"prim\": \"null\", \"stitch\": \"{\\\"short_opt\\\": \\\"False\\\", \\\"dove_opt\\\": \\\"True\\\", \\\"pct\\\": \\\"0.1\\\", \\\"stitchlog_opt\\\": \\\"False\\\", \\\"overlap\\\": \\\"20\\\", \\\"__current_case__\\\": 0, \\\"stitch_opt\\\": \\\"yes\\\", \\\"dovelog_opt\\\": \\\"False\\\"}\", \"removePrimer\": \"{\\\"fp\\\": \\\"-1,1\\\", \\\"rp\\\": \\\"-1,1\\\", \\\"rp_opt\\\": \\\"yes\\\", \\\"ef\\\": \\\"2\\\", \\\"bed\\\": {\\\"bed_opt\\\": \\\"no\\\", \\\"__current_case__\\\": 1}, \\\"internal\\\": {\\\"int_opt\\\": \\\"no\\\", \\\"__current_case__\\\": 1}, \\\"__current_case__\\\": 0, \\\"rplog_opt\\\": \\\"False\\\", \\\"er\\\": \\\"2\\\"}\", \"__rerun_remap_job_id__\": null, \"in1\": \"null\", \"in2\": \"null\", \"single\": \"{\\\"both\\\": \\\"True\\\", \\\"removePrimer2\\\": {\\\"rp2_opt\\\": \\\"yes\\\", \\\"rp2\\\": \\\"-1,1\\\", \\\"rp2log_opt\\\": \\\"False\\\", \\\"er2\\\": \\\"2\\\", \\\"require\\\": \\\"False\\\", \\\"internal2\\\": {\\\"el2\\\": \\\"1\\\", \\\"int2_opt\\\": \\\"yes\\\", \\\"__current_case__\\\": 0, \\\"rl2\\\": \\\"16\\\"}, \\\"bed2\\\": {\\\"bp2\\\": \\\"-1,1\\\", \\\"bed2_opt\\\": \\\"yes\\\", \\\"__current_case__\\\": 0, \\\"bedfile2\\\": null}, \\\"__current_case__\\\": 0, \\\"fp2\\\": \\\"-1,1\\\", \\\"ef2\\\": \\\"2\\\"}, \\\"qual\\\": \\\"True\\\", \\\"__current_case__\\\": 0, \\\"chim\\\": \\\"True\\\", \\\"single_opt\\\": \\\"yes\\\"}\", \"chromInfo\": \"\\\"/home/john/galaxy-dist/tool-data/shared/ucsc/chrom/?.len\\\"\"}", 
+            "tool_version": "1.0.0", 
+            "type": "tool", 
+            "user_outputs": []
+        }, 
+        "5": {
+            "annotation": "", 
+            "id": 5, 
+            "input_connections": {
+                "in": {
+                    "id": 4, 
+                    "output_name": "comb"
+                }
+            }, 
+            "inputs": [], 
+            "name": "Quality filtering", 
+            "outputs": [
+                {
+                    "name": "out", 
+                    "type": "fastqsanger"
+                }
+            ], 
+            "position": {
+                "left": 860, 
+                "top": 200
+            }, 
+            "post_job_actions": {
+                "HideDatasetActionout": {
+                    "action_arguments": {}, 
+                    "action_type": "HideDatasetAction", 
+                    "output_name": "out"
+                }
+            }, 
+            "tool_errors": null, 
+            "tool_id": "qualtrim", 
+            "tool_state": "{\"trim\": \"{\\\"trim_opt\\\": \\\"both\\\", \\\"__current_case__\\\": 0}\", \"__page__\": 0, \"__rerun_remap_job_id__\": null, \"l\": \"\\\"0\\\"\", \"n\": \"\\\"20\\\"\", \"q\": \"\\\"0.0\\\"\", \"t\": \"\\\"30.0\\\"\", \"in\": \"null\", \"chromInfo\": \"\\\"/home/john/galaxy-dist/tool-data/shared/ucsc/chrom/?.len\\\"\"}", 
+            "tool_version": "1.0.0", 
+            "type": "tool", 
+            "user_outputs": []
+        }, 
+        "6": {
+            "annotation": "", 
+            "id": 6, 
+            "input_connections": {
+                "bed": {
+                    "id": 2, 
+                    "output_name": "output"
+                }, 
+                "fastq": {
+                    "id": 4, 
+                    "output_name": "joined"
+                }, 
+                "prim": {
+                    "id": 3, 
+                    "output_name": "output"
+                }
+            }, 
+            "inputs": [], 
+            "name": "Align length-variant reads", 
+            "outputs": [
+                {
+                    "name": "out", 
+                    "type": "tabular"
+                }, 
+                {
+                    "name": "log", 
+                    "type": "tabular"
+                }
+            ], 
+            "position": {
+                "left": 860, 
+                "top": 320
+            }, 
+            "post_job_actions": {
+                "HideDatasetActionlog": {
+                    "action_arguments": {}, 
+                    "action_type": "HideDatasetAction", 
+                    "output_name": "log"
+                }, 
+                "HideDatasetActionout": {
+                    "action_arguments": {}, 
+                    "action_type": "HideDatasetAction", 
+                    "output_name": "out"
+                }
+            }, 
+            "tool_errors": null, 
+            "tool_id": "lengthvars", 
+            "tool_state": "{\"__page__\": 0, \"prim\": \"null\", \"fastq\": \"null\", \"log_opt\": \"\\\"False\\\"\", \"pct\": \"\\\"0.01\\\"\", \"len\": \"\\\"5\\\"\", \"bed\": \"null\", \"chromInfo\": \"\\\"/home/john/galaxy-dist/tool-data/shared/ucsc/chrom/?.len\\\"\", \"__rerun_remap_job_id__\": null, \"genome\": \"{\\\"genome_opt\\\": \\\"yes\\\", \\\"gen\\\": {\\\"__class__\\\": \\\"UnvalidatedValue\\\", \\\"value\\\": \\\"/home/john/Downloads/Homo_sapiens/UCSC/hg19/Sequence/WholeGenomeFasta/genome.fa\\\"}, \\\"__current_case__\\\": 0}\"}", 
+            "tool_version": "1.0.0", 
+            "type": "tool", 
+            "user_outputs": []
+        }, 
+        "7": {
+            "annotation": "", 
+            "id": 7, 
+            "input_connections": {
+                "library|input_1": {
+                    "id": 5, 
+                    "output_name": "out"
+                }
+            }, 
+            "inputs": [], 
+            "name": "Bowtie2", 
+            "outputs": [
+                {
+                    "name": "output_unaligned_reads_l", 
+                    "type": "fastqsanger"
+                }, 
+                {
+                    "name": "output_unaligned_reads_r", 
+                    "type": "fastqsanger"
+                }, 
+                {
+                    "name": "output", 
+                    "type": "bam"
+                }, 
+                {
+                    "name": "output_sam", 
+                    "type": "sam"
+                }
+            ], 
+            "position": {
+                "left": 1080, 
+                "top": 200
+            }, 
+            "post_job_actions": {
+                "HideDatasetActionoutput": {
+                    "action_arguments": {}, 
+                    "action_type": "HideDatasetAction", 
+                    "output_name": "output"
+                }, 
+                "HideDatasetActionoutput_sam": {
+                    "action_arguments": {}, 
+                    "action_type": "HideDatasetAction", 
+                    "output_name": "output_sam"
+                }, 
+                "HideDatasetActionoutput_unaligned_reads_l": {
+                    "action_arguments": {}, 
+                    "action_type": "HideDatasetAction", 
+                    "output_name": "output_unaligned_reads_l"
+                }, 
+                "HideDatasetActionoutput_unaligned_reads_r": {
+                    "action_arguments": {}, 
+                    "action_type": "HideDatasetAction", 
+                    "output_name": "output_unaligned_reads_r"
+                }
+            }, 
+            "tool_errors": null, 
+            "tool_id": "toolshed.g2.bx.psu.edu/repos/devteam/bowtie2/bowtie2/0.3", 
+            "tool_state": "{\"__page__\": 0, \"read_group\": \"{\\\"__current_case__\\\": 1, \\\"read_group_selector\\\": \\\"no\\\"}\", \"__rerun_remap_job_id__\": null, \"library\": \"{\\\"unaligned_file\\\": \\\"False\\\", \\\"type\\\": \\\"single\\\", \\\"__current_case__\\\": 0, \\\"input_1\\\": null}\", \"reference_genome\": \"{\\\"source\\\": \\\"indexed\\\", \\\"__current_case__\\\": 0, \\\"index\\\": {\\\"__class__\\\": \\\"UnvalidatedValue\\\", \\\"value\\\": \\\"hg19\\\"}}\", \"analysis_type\": \"{\\\"alignment_options\\\": {\\\"n_ceil\\\": \\\"L,0,0.15\\\", \\\"__current_case__\\\": 0, \\\"i\\\": \\\"S,1,0.50\\\", \\\"L\\\": \\\"18\\\", \\\"N\\\": \\\"1\\\", \\\"norc\\\": \\\"False\\\", \\\"nofw\\\": \\\"False\\\", \\\"align_mode\\\": {\\\"align_mode_selector\\\": \\\"end-to-end\\\", \\\"score_min_ete\\\": \\\"L,-0.6,-0.6\\\", \\\"__current_case__\\\": 0}, \\\"alignment_options_selector\\\": \\\"yes\\\", \\\"no_1mm_upfront\\\": \\\"False\\\", \\\"gbar\\\": \\\"4\\\", \\\"ignore_quals\\\": \\\"False\\\", \\\"dpad\\\": \\\"15\\\"}, \\\"effort_options\\\": {\\\"effort_options_selector\\\": \\\"yes\\\", \\\"R\\\": \\\"2\\\", \\\"D\\\": \\\"200\\\", \\\"__current_case__\\\": 0}, \\\"sam_options\\\": {\\\"sam_options_selector\\\": \\\"no\\\", \\\"__current_case__\\\": 1}, \\\"other_options\\\": {\\\"other_options_selector\\\": \\\"no\\\", \\\"__current_case__\\\": 1}, \\\"scoring_options\\\": {\\\"scoring_options_selector\\\": \\\"no\\\", \\\"__current_case__\\\": 1}, \\\"analysis_type_selector\\\": \\\"full\\\", \\\"reporting_options\\\": {\\\"k\\\": \\\"20\\\", \\\"reporting_options_selector\\\": \\\"k\\\", \\\"__current_case__\\\": 1}, \\\"__current_case__\\\": 1, \\\"sam_opt\\\": \\\"True\\\", \\\"input_options\\\": {\\\"input_options_selector\\\": \\\"no\\\", \\\"__current_case__\\\": 1}}\", \"chromInfo\": \"\\\"/home/john/galaxy-dist/tool-data/shared/ucsc/chrom/?.len\\\"\"}", 
+            "tool_version": "0.3", 
+            "type": "tool", 
+            "user_outputs": []
+        }, 
+        "8": {
+            "annotation": "", 
+            "id": 8, 
+            "input_connections": {
+                "bed": {
+                    "id": 2, 
+                    "output_name": "output"
+                }, 
+                "fastq": {
+                    "id": 5, 
+                    "output_name": "out"
+                }, 
+                "prim": {
+                    "id": 3, 
+                    "output_name": "output"
+                }, 
+                "realign|real": {
+                    "id": 6, 
+                    "output_name": "out"
+                }, 
+                "sam": {
+                    "id": 7, 
+                    "output_name": "output_sam"
+                }
+            }, 
+            "inputs": [], 
+            "name": "Edit a SAM file", 
+            "outputs": [
+                {
+                    "name": "out", 
+                    "type": "sam"
+                }, 
+                {
+                    "name": "align_log", 
+                    "type": "tabular"
+                }, 
+                {
+                    "name": "realign_log", 
+                    "type": "tabular"
+                }
+            ], 
+            "position": {
+                "left": 1300, 
+                "top": 200
+            }, 
+            "post_job_actions": {
+                "HideDatasetActionalign_log": {
+                    "action_arguments": {}, 
+                    "action_type": "HideDatasetAction", 
+                    "output_name": "align_log"
+                }, 
+                "HideDatasetActionout": {
+                    "action_arguments": {}, 
+                    "action_type": "HideDatasetAction", 
+                    "output_name": "out"
+                }, 
+                "HideDatasetActionrealign_log": {
+                    "action_arguments": {}, 
+                    "action_type": "HideDatasetAction", 
+                    "output_name": "realign_log"
+                }
+            }, 
+            "tool_errors": null, 
+            "tool_id": "editsam", 
+            "tool_state": "{\"__page__\": 0, \"prim\": \"null\", \"sam\": \"null\", \"fastq\": \"null\", \"log_opt\": \"\\\"False\\\"\", \"pct\": \"\\\"0.75\\\"\", \"realign\": \"{\\\"real\\\": null, \\\"realignlog_opt\\\": \\\"False\\\", \\\"pct\\\": \\\"0.75\\\", \\\"__current_case__\\\": 0, \\\"realign_opt\\\": \\\"yes\\\"}\", \"__rerun_remap_job_id__\": null, \"bed\": \"null\", \"chromInfo\": \"\\\"/home/john/galaxy-dist/tool-data/shared/ucsc/chrom/hg19.len\\\"\", \"gen\": \"{\\\"__class__\\\": \\\"UnvalidatedValue\\\", \\\"value\\\": \\\"/home/john/Downloads/Homo_sapiens/UCSC/hg19/Sequence/WholeGenomeFasta/genome.fa\\\"}\"}", 
+            "tool_version": "1.0.0", 
+            "type": "tool", 
+            "user_outputs": []
+        }, 
+        "9": {
+            "annotation": "", 
+            "id": 9, 
+            "input_connections": {
+                "source|input1": {
+                    "id": 8, 
+                    "output_name": "out"
+                }
+            }, 
+            "inputs": [], 
+            "name": "SAM-to-BAM", 
+            "outputs": [
+                {
+                    "name": "output1", 
+                    "type": "bam"
+                }
+            ], 
+            "position": {
+                "left": 1520, 
+                "top": 200
+            }, 
+            "post_job_actions": {
+                "HideDatasetActionoutput1": {
+                    "action_arguments": {}, 
+                    "action_type": "HideDatasetAction", 
+                    "output_name": "output1"
+                }
+            }, 
+            "tool_errors": null, 
+            "tool_id": "toolshed.g2.bx.psu.edu/repos/devteam/sam_to_bam/sam_to_bam/1.1.4", 
+            "tool_state": "{\"source\": \"{\\\"index_source\\\": \\\"cached\\\", \\\"index\\\": {\\\"__class__\\\": \\\"UnvalidatedValue\\\", \\\"value\\\": \\\"Human (Homo sapiens): hg19\\\"}, \\\"input1\\\": null, \\\"__current_case__\\\": 0}\", \"__rerun_remap_job_id__\": null, \"chromInfo\": \"\\\"/home/john/galaxy-dist/tool-data/shared/ucsc/chrom/hg19.len\\\"\", \"__page__\": 0}", 
+            "tool_version": "1.1.4", 
+            "type": "tool", 
+            "user_outputs": []
+        }, 
+        "10": {
+            "annotation": "", 
+            "id": 10, 
+            "input_connections": {
+                "reference_source|input_bams_0|input_bam": {
+                    "id": 9, 
+                    "output_name": "output1"
+                }
+            }, 
+            "inputs": [], 
+            "name": "MPileup", 
+            "outputs": [
+                {
+                    "name": "output_mpileup", 
+                    "type": "pileup"
+                }, 
+                {
+                    "name": "output_log", 
+                    "type": "txt"
+                }
+            ], 
+            "position": {
+                "left": 1740, 
+                "top": 200
+            }, 
+            "post_job_actions": {
+                "HideDatasetActionoutput_log": {
+                    "action_arguments": {}, 
+                    "action_type": "HideDatasetAction", 
+                    "output_name": "output_log"
+                }, 
+                "HideDatasetActionoutput_mpileup": {
+                    "action_arguments": {}, 
+                    "action_type": "HideDatasetAction", 
+                    "output_name": "output_mpileup"
+                }
+            }, 
+            "tool_errors": null, 
+            "tool_id": "toolshed.g2.bx.psu.edu/repos/devteam/samtools_mpileup/samtools_mpileup/0.0.3", 
+            "tool_state": "{\"__page__\": 0, \"genotype_likelihood_computation_type\": \"{\\\"genotype_likelihood_computation_type_selector\\\": \\\"do_not_perform_genotype_likelihood_computation\\\", \\\"__current_case__\\\": 1}\", \"__rerun_remap_job_id__\": null, \"advanced_options\": \"{\\\"max_reads_per_bam\\\": \\\"100000\\\", \\\"advanced_options_selector\\\": \\\"advanced\\\", \\\"extended_BAQ_computation\\\": \\\"False\\\", \\\"region_string\\\": \\\"\\\", \\\"output_per_sample_strand_bias_p_value\\\": \\\"False\\\", \\\"minimum_base_quality\\\": \\\"0\\\", \\\"disable_probabilistic_realignment\\\": \\\"True\\\", \\\"skip_anomalous_read_pairs\\\": \\\"False\\\", \\\"minimum_mapping_quality\\\": \\\"0\\\", \\\"output_per_sample_read_depth\\\": \\\"False\\\", \\\"__current_case__\\\": 0, \\\"position_list\\\": null, \\\"coefficient_for_downgrading\\\": \\\"0\\\"}\", \"reference_source\": \"{\\\"ref_file\\\": {\\\"__class__\\\": \\\"UnvalidatedValue\\\", \\\"value\\\": \\\"Human (Homo sapiens): hg19\\\"}, \\\"reference_source_selector\\\": \\\"cached\\\", \\\"input_bams\\\": [{\\\"__index__\\\": 0, \\\"input_bam\\\": null}], \\\"__current_case__\\\": 0}\", \"chromInfo\": \"\\\"/home/john/galaxy-dist/tool-data/shared/ucsc/chrom/hg19.len\\\"\"}", 
+            "tool_version": "0.0.3", 
+            "type": "tool", 
+            "user_outputs": []
+        }, 
+        "11": {
+            "annotation": "", 
+            "id": 11, 
+            "input_connections": {
+                "input": {
+                    "id": 10, 
+                    "output_name": "output_mpileup"
+                }
+            }, 
+            "inputs": [], 
+            "name": "Varscan", 
+            "outputs": [
+                {
+                    "name": "output", 
+                    "type": "vcf"
+                }
+            ], 
+            "position": {
+                "left": 1960, 
+                "top": 200
+            }, 
+            "post_job_actions": {
+                "HideDatasetActionoutput": {
+                    "action_arguments": {}, 
+                    "action_type": "HideDatasetAction", 
+                    "output_name": "output"
+                }
+            }, 
+            "tool_errors": null, 
+            "tool_id": "toolshed.g2.bx.psu.edu/repos/devteam/varscan_version_2/varscan/0.1", 
+            "tool_state": "{\"strand_filter\": \"\\\"no\\\"\", \"min_coverage\": \"\\\"1\\\"\", \"sample_names\": \"\\\"\\\"\", \"min_avg_qual\": \"\\\"30\\\"\", \"__page__\": 0, \"__rerun_remap_job_id__\": null, \"cmd\": \"\\\"pileup2snp\\\"\", \"min_freq_for_hom\": \"\\\"0.75\\\"\", \"min_var_freq\": \"\\\"0.01\\\"\", \"p_value\": \"\\\"0.99\\\"\", \"input\": \"null\", \"chromInfo\": \"\\\"/home/john/galaxy-dist/tool-data/shared/ucsc/chrom/hg19.len\\\"\", \"min_supporting_reads\": \"\\\"2\\\"\"}", 
+            "tool_version": "0.1", 
+            "type": "tool", 
+            "user_outputs": []
+        }, 
+        "12": {
+            "annotation": "", 
+            "id": 12, 
+            "input_connections": {
+                "input": {
+                    "id": 10, 
+                    "output_name": "output_mpileup"
+                }
+            }, 
+            "inputs": [], 
+            "name": "Varscan", 
+            "outputs": [
+                {
+                    "name": "output", 
+                    "type": "vcf"
+                }
+            ], 
+            "position": {
+                "left": 1960, 
+                "top": 320
+            }, 
+            "post_job_actions": {
+                "HideDatasetActionoutput": {
+                    "action_arguments": {}, 
+                    "action_type": "HideDatasetAction", 
+                    "output_name": "output"
+                }
+            }, 
+            "tool_errors": null, 
+            "tool_id": "toolshed.g2.bx.psu.edu/repos/devteam/varscan_version_2/varscan/0.1", 
+            "tool_state": "{\"strand_filter\": \"\\\"no\\\"\", \"min_coverage\": \"\\\"1\\\"\", \"sample_names\": \"\\\"\\\"\", \"min_avg_qual\": \"\\\"30\\\"\", \"__page__\": 0, \"__rerun_remap_job_id__\": null, \"cmd\": \"\\\"pileup2indel\\\"\", \"min_freq_for_hom\": \"\\\"0.75\\\"\", \"min_var_freq\": \"\\\"0.01\\\"\", \"p_value\": \"\\\"0.99\\\"\", \"input\": \"null\", \"chromInfo\": \"\\\"/home/john/galaxy-dist/tool-data/shared/ucsc/chrom/hg19.len\\\"\", \"min_supporting_reads\": \"\\\"2\\\"\"}", 
+            "tool_version": "0.1", 
+            "type": "tool", 
+            "user_outputs": []
+        }, 
+        "13": {
+            "annotation": "", 
+            "id": 13, 
+            "input_connections": {
+                "filter|bedfile|bed": {
+                    "id": 2, 
+                    "output_name": "output"
+                }, 
+                "ind": {
+                    "id": 12, 
+                    "output_name": "output"
+                }, 
+                "pil": {
+                    "id": 10, 
+                    "output_name": "output_mpileup"
+                }, 
+                "snp": {
+                    "id": 11, 
+                    "output_name": "output"
+                }
+            }, 
+            "inputs": [], 
+            "name": "Construct a VCF", 
+            "outputs": [
+                {
+                    "name": "out", 
+                    "type": "vcf"
+                }, 
+                {
+                    "name": "log", 
+                    "type": "tabular"
+                }
+            ], 
+            "position": {
+                "left": 2180, 
+                "top": 200
+            }, 
+            "post_job_actions": {
+                "HideDatasetActionlog": {
+                    "action_arguments": {}, 
+                    "action_type": "HideDatasetAction", 
+                    "output_name": "log"
+                }
+            }, 
+            "tool_errors": null, 
+            "tool_id": "makevcf", 
+            "tool_state": "{\"__page__\": 0, \"addhp\": \"{\\\"log_opt\\\": \\\"False\\\", \\\"addhp_opt\\\": \\\"yes\\\", \\\"__current_case__\\\": 0, \\\"gen\\\": {\\\"__class__\\\": \\\"UnvalidatedValue\\\", \\\"value\\\": \\\"/home/john/Downloads/Homo_sapiens/UCSC/hg19/Sequence/WholeGenomeFasta/genome.fa\\\"}}\", \"__rerun_remap_job_id__\": null, \"lab\": \"\\\"sample\\\"\", \"filter\": \"{\\\"a\\\": \\\"0.0\\\", \\\"__current_case__\\\": 0, \\\"i\\\": \\\"0.0\\\", \\\"m\\\": \\\"0.0\\\", \\\"o\\\": \\\"0\\\", \\\"p\\\": \\\"\\\", \\\"bedfile\\\": {\\\"bed_opt\\\": \\\"yes\\\", \\\"bed\\\": null, \\\"__current_case__\\\": 0}, \\\"filter_opt\\\": \\\"yes\\\", \\\"d\\\": \\\"0\\\"}\", \"qual\": \"\\\"30\\\"\", \"snp\": \"null\", \"ind\": \"null\", \"pil\": \"null\", \"chromInfo\": \"\\\"/home/john/galaxy-dist/tool-data/shared/ucsc/chrom/hg19.len\\\"\"}", 
+            "tool_version": "1.0.0", 
+            "type": "tool", 
+            "user_outputs": []
+        }
+    }, 
+    "uuid": "725b521e-0d1b-4f46-adba-489873feb939"
+}

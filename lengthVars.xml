@@ -1,0 +1,122 @@
+<tool id="lengthvars" name="Align length-variant reads">
+  <description> to expected amplicon target sequences</description>
+  <command>
+    findLengthVars.pl "$fastq" "$bed" temp0 "$pct" "$len";
+    getLengthVars.pl "$fastq" temp0 temp1;
+    alignLengthVars.pl temp1 "$prim" "$bed" "$out"
+    #if str( $log_opt ) == "true":
+      "$log"
+    #end if
+    #if str( $genome.genome_opt ) == "yes":
+      #if str( $log_opt ) == "false":
+        None
+      #end if
+      "$genome.gen.fields.path"
+    #end if
+  </command>
+  <inputs>
+    <param format="fastq" name="fastq" type="data" label="Reads with primers removed" help="Only reads that have had both primers removed, of the format produced by the tool &quot;Remove PCR primers&quot;"/>
+    <param format="csv" name="prim" type="data" label="File listing primer and target sequences" help="Of the format produced by the tool &quot;Retrieve primers and target sequences&quot;"/>
+    <param format="bed" name="bed" type="data" label="File listing primer locations"/>
+    <param name="pct" type="float" value="0.01" min="0" max="1" label="Minimum fraction of reads to consider" help="Default of 0.01 means at least 1% of reads from a particular amplicon must be significantly different from the expected length to report."/>
+    <param name="len" type="integer" value="5" min="1" label="Minimum length difference that is considered &quot;significant&quot;" help="Default of 5bp means, for example, all reads 76-84bp in length are not counted as different from an expected length of 80bp."/>
+    <param name="log_opt" type="boolean" truevalue="true" falsevalue="false" checked="false" label="Would you like a verbose output log file?" help="By default, one output file (listing realignment information for each length-variant read) is produced."/>
+
+    <conditional name="genome">
+      <param name="genome_opt" type="select" label="Would you like to specify a reference genome?" help="Used to evaluate external insertions (see &quot;External in/dels&quot; section below for more information).">
+        <option value="no" selected="True">No</option>
+        <option value="yes">Yes</option>
+      </param>
+      <when value="yes">
+        <param format="fasta" name="gen" type="select" label="Reference genome">
+          <options from_data_table="all_fasta"/>
+        </param>
+      </when>
+      <when value="no"/>
+    </conditional>
+
+  </inputs>
+
+  <outputs>
+    <data format="tabular" name="out" label="${tool.name} on ${on_string}: alignment information"/>
+    <data format="tabular" name="log" label="${tool.name} on ${on_string}: verbose log file">
+      <filter>log_opt is True</filter>
+    </data>
+  </outputs>
+
+  <help>
+This tool produces re-alignment information for length-variant reads. First,
+groups of length variant reads are found using the minimum fraction and length
+difference parameters. The tool then aligns each group of reads to its expected
+target sequence and determines a consensus CIGAR based on minimizing the edit
+distance (number of substitutions) for the reads in that group. Preference is
+given to external in/dels (see below), and then to in/dels closer to the 5'
+end of reads.
+
+The primary output file lists each read and all of the information necessary
+to produce a SAM record based on the new alignment. The optional verbose log
+output file gives additional information about the potential CIGARs considered
+for each set of reads. Note that no judgment is made by this tool about the
+quality of the reported alignments.
+
+-----
+
+**External in/dels**
+
+Insertions or deletions that appear at the 5' or 3' end of a read are called
+*external*. Alignments with external in/dels are given preference over other
+alignments for two reasons:
+
+1. External in/dels may be an artifact of a PCR primer mispriming on a similar
+sequence near the expected location. For this reason, external in/dels are
+evaluated for such a primer match, and the score (on a 0-1 scale -- see
+*Primer matching score* below) is reported in the output file(s) (the final
+judgment about whether or not an external in/del is an artifact is not made
+by this tool). The reference genome is required to examine external
+insertions because the putative mispriming site falls outside of the given
+primer/target sequences.
+
+2. External in/dels are unlikely to lead to variant calls by a conventional
+approach. With an external deletion, the gap would not be apparent to a read
+mapper. An external insertion may be a matching repeat, or it may be mapped
+incorrectly with a series of SNPs. By reporting such alignments as external,
+this tool ensures that the tool *Edit a SAM file* will give preference to
+them over equivalent mappings.
+
+The alignments of reads with external deletions have an extra base appended
+to them, to ensure that the deletion is recognized by a variant caller.
+
+-----
+
+**Primer matching score**
+
+To evaluate whether a primer is likely to bind to a given DNA segment, the
+following weighted scoring function was developed. The last 20 bases of the
+primer are numbered 1-20, with #20 at the 3' end. Each base is valued
+according to its position::
+
+  Position   Value
+    1-10     2*pos
+   11-19     3*pos
+     20      5*pos
+   other       1
+
+The values of the matches between the primer and the DNA segment are summed
+and divided by the sum of the values of all positions. This gives the
+score, on a scale of 0-1, with 1 representing a perfect match.
+
+Primers shorter than 20bp are numbered to leave off the lower positions
+(e.g. an 18bp primer is numbered 3-20). Primers longer than 20bp have all
+positions upstream of the last 20bp valued at 1.
+
+For example::
+
+  primer  ACGTACGTACGTACGTACGTACG
+  genome  TGGTACTTAGGGACGCACGTGCG
+            **** ** * *** **** **
+
+The score of this primer match is 483 / 618 = 0.782.
+
+  </help>
+
+</tool>

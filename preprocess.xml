@@ -1,0 +1,320 @@
+<tool id="preprocess" name="Preprocess reads">
+  <description>by stitching and removing primers</description>
+  <command>
+
+    ## stitch together the PE reads
+    stitch -1 "$in1" -2 "$in2" -o temp0
+
+    #if str( $stitch.stitch_opt ) == "yes":
+      -m "$stitch.overlap"
+      -p "$stitch.pct"
+      $stitch.short_opt
+
+      #if str( $stitch.dove_opt ) == "true":
+        -d
+        #if str( $stitch.dovelog_opt ) == "true":
+          -dl "$dovelog"
+        #end if
+      #end if
+
+      #if str( $stitch.stitchlog_opt ) == "true":
+        -l "$stitchlog"
+      #end if
+    #end if
+
+    #if str( $single.single_opt ) == "yes":
+      -u1 temp1
+      -u2 temp2
+    #end if
+    ;
+
+    ## remove primers from both ends
+    removePrimer -i temp0 -p "$prim" -o "$joined" -rq
+
+    #if str( $removePrimer.rp_opt ) == "yes":
+      -ef "$removePrimer.ef"
+      -fp "$removePrimer.fp"
+      -er "$removePrimer.er"
+      -rp "$removePrimer.rp"
+
+      #if str( $removePrimer.internal.int_opt ) == "yes":
+        -el "$removePrimer.internal.el"
+        -rl "$removePrimer.internal.rl"
+      #end if
+
+      #if str( $removePrimer.bed.bed_opt ) == "yes":
+        -b "$removePrimer.bed.bedfile"
+        -bp "$removePrimer.bed.bp"
+      #end if
+
+      #if str( $removePrimer.rplog_opt ) == "true":
+        -l "$removePrimerlog"
+      #end if
+    #end if
+
+    ## analyze singletons
+    #if str( $single.single_opt ) == "yes":
+      -w temp3;
+
+      ## collect failure reads
+      getReads.pl temp3 "$in1" temp4;
+      getReads.pl temp3 "$in2" temp5;
+      cat temp1 &gt;&gt; temp4;
+      cat temp2 &gt;&gt; temp5;
+
+      ## remove primers separately
+      removePrimer -i temp4 -p "$prim" -o temp6
+
+      #if str( $single.removePrimer2.rp2_opt ) == "yes":
+        $single.removePrimer2.require
+        -ef "$single.removePrimer2.ef2"
+        -fp "$single.removePrimer2.fp2"
+        -er "$single.removePrimer2.er2"
+        -rp "$single.removePrimer2.rp2"
+
+        #if str( $single.removePrimer2.internal2.int2_opt ) == "yes":
+          -el "$single.removePrimer2.internal2.el2"
+          -rl "$single.removePrimer2.internal2.rl2"
+        #end if
+
+        #if str( $single.removePrimer2.bed2.bed2_opt ) == "yes":
+          -b "$single.removePrimer2.bed2.bedfile2"
+          -bp "$single.removePrimer2.bed2.bp2"
+        #end if
+
+        #if str( $single.removePrimer2.rp2log_opt ) == "true":
+          -l "$removePrimer1log"
+        #end if
+      #end if
+      ;
+
+      removePrimer -i temp5 -p "$prim" -o temp7
+
+      #if str( $single.removePrimer2.rp2_opt ) == "yes":
+        $single.removePrimer2.require
+        -ef "$single.removePrimer2.ef2"
+        -fp "$single.removePrimer2.fp2"
+        -er "$single.removePrimer2.er2"
+        -rp "$single.removePrimer2.rp2"
+
+        #if str( $single.removePrimer2.internal2.int2_opt ) == "yes":
+          -el "$single.removePrimer2.internal2.el2"
+          -rl "$single.removePrimer2.internal2.rl2"
+        #end if
+
+        #if str( $single.removePrimer2.bed2.bed2_opt ) == "yes":
+          -b "$single.removePrimer2.bed2.bedfile2"
+          -bp "$single.removePrimer2.bed2.bp2"
+        #end if
+
+        #if str( $single.removePrimer2.rp2log_opt ) == "true":
+          -l "$removePrimer2log"
+        #end if
+      #end if
+      ;
+
+      ## filter singletons
+      filterSingle.pl temp6 temp7 temp8
+        $single.chim $single.both $single.qual;
+
+      ## produce combined output
+      cat "$joined" temp8 &gt; "$comb"
+
+    #end if
+
+  </command>
+
+  <inputs>
+    <param format="fastq" name="in1" type="data" label="FASTQ file #1"/>
+    <param format="fastq" name="in2" type="data" label="FASTQ file #2"/>
+    <param format="csv" name="prim" type="data" label="File listing primer and target sequences" help="Of the format produced by the tool &quot;Retrieve primers and target sequences&quot;"/>
+
+    <!-- stitch options -->
+    <conditional name="stitch">
+      <param name="stitch_opt" type="select" label="Would you like to choose non-default parameters or output log files for the stitching step?" help="Defaults: minimum overlap of 20bp; 0 allowed mismatches; no dovetailing; longest stitched read produced">
+        <option value="no" selected="True">No</option>
+        <option value="yes">Yes</option>
+      </param>
+      <when value="yes">
+        <param name="overlap" type="integer" value="20" min="0" label="Minimum overlap of the paired-end reads"/>
+        <param name="pct" type="float" value="0" min="0" max="1" label="Mismatches to allow in the overlapped region" help="A fraction of the overlap length. For example, a value of 0.05 means that up to 5% of the overlapping bases can be mismatches."/>
+        <param name="dove_opt" type="boolean" truevalue="true" falsevalue="false" checked="false" label="Would you like to allow the reads to dovetail?" help="Using the same minimum overlap (selected above)"/>
+        <param name="short_opt" type="boolean" truevalue="-n" falsevalue="" checked="false" label="Would you like to produce the shortest stitched read possible?" help="For reads with multiple overlapping possibilities."/>
+        <param name="stitchlog_opt" type="boolean" truevalue="true" falsevalue="false" checked="false" label="Would you like a stitching output log file?"/>
+        <param name="dovelog_opt" type="boolean" truevalue="true" falsevalue="false" checked="false" label="Would you like an output log file for the dovetailed reads?" help="Created only if dovetailing is allowed"/>
+      </when>
+      <when value="no"/>
+    </conditional>
+
+    <!-- primer removal options -->
+    <conditional name="removePrimer">
+      <param name="rp_opt" type="select" label="Would you like to choose non-default parameters or output log files for the primer removal step?" help="Defaults: 0 allowed mismatches; searching begins at position 0; no searching for second primer internally or based on length">
+        <option value="no" selected="True">No</option>
+        <option value="yes">Yes</option>
+      </param>
+      <when value="yes">
+        <param name="ef" type="integer" value="0" min="0" label="Mismatches to the first primer to allow"/>
+        <param name="fp" type="text" value="0" label="Position (or range of positions) at which to begin searching for the first primer" help="Default of 0 means the search will begin at the first base of each read only. Specifying a range such as -1,1 (comma-separated) will allow the first primer to match starting at positions -1, 0, or 1."/>
+        <param name="er" type="integer" value="0" min="0" label="Mismatches to the second primer to allow for full-length 3' end matching"/>
+        <param name="rp" type="text" value="0" label="Position (or range of positions) at which to begin searching for the second primer for full-length 3' end matching" help="Default of 0 means the search will begin at the last base of each read only. Specifying a range such as -1,1 (comma-separated) will allow the second primer to match starting at positions -1, 0, or 1 with respect to the last base."/>
+        <conditional name="internal">
+          <param name="int_opt" type="select" label="Would you like the program to search for internal matches of the second primer?">
+            <option value="no" selected="True">No</option>
+            <option value="yes">Yes</option>
+          </param>
+          <when value="yes">
+            <param name="rl" type="integer" value="100" min="1" label="Length of the second primer to search for (internal matching)" help="Choosing a large value (e.g. 100) will ensure full-length matching regardless of primer length."/>
+            <param name="el" type="integer" value="0" min="0" label="Mismatches to the second primer to allow (internal matching)"/>
+          </when>
+          <when value="no"/>
+        </conditional>
+        <conditional name="bed">
+          <param name="bed_opt" type="select" label="Would you like the program to search for (potentially limited) matches of the second primer using expected amplicon lengths?">
+            <option value="no" selected="True">No</option>
+            <option value="yes">Yes</option>
+          </param>
+          <when value="yes">
+            <param format="bed" name="bedfile" type="data" label="File listing primer locations"/>
+            <param name="bp" type="text" value="0" label="Position (or range of positions) at which to begin searching for the second primer based on expected length" help="Default of 0 means the search will begin at the expected length only. Specifying a range such as -1,1 (comma-separated) will allow the second primer to match starting at positions -1, 0, or 1 with respect to the expected length."/>
+          </when>
+          <when value="no"/>
+        </conditional>
+        <param name="rplog_opt" type="boolean" truevalue="true" falsevalue="false" checked="false" label="Would you like a primer removal output log file?"/>
+      </when>
+      <when value="no"/>
+    </conditional>
+
+    <!-- singleton options -->
+    <conditional name="single">
+      <param name="single_opt" type="select" label="Would you like for singletons to be analyzed?" help="Reads that failed the above steps will be subjected to separate primer removal and filtering.">
+        <option value="no" selected="True">No</option>
+        <option value="yes">Yes</option>
+      </param>
+      <when value="yes">
+
+        <!-- singleton primer removal options -->
+        <conditional name="removePrimer2">
+          <param name="rp2_opt" type="select" label="Would you like to choose non-default parameters or output log files for the singleton primer removal step?" help="Defaults: both primers NOT required; 0 allowed mismatches; searching begins at position 0; no searching for second primer internally or based on length">
+            <option value="no" selected="True">No</option>
+            <option value="yes">Yes</option>
+          </param>
+          <when value="yes">
+            <param name="require" type="boolean" truevalue="-rq" falsevalue="" checked="false" label="Would you like to require that both primers be found (for singleton primer removal)?"/>
+            <param name="ef2" type="integer" value="0" min="0" label="Mismatches to the first primer to allow (for singleton primer removal)"/>
+            <param name="fp2" type="text" value="0" label="Position (or range of positions) at which to begin searching for the first primer (for singleton primer removal)" help="Default of 0 means the search will begin at the first base of each read only. Specifying a range such as -1,1 (comma-separated) will allow the first primer to match starting at positions -1, 0, or 1."/>
+            <param name="er2" type="integer" value="0" min="0" label="Mismatches to the second primer to allow for full-length 3' end matching (for singleton primer removal)"/>
+            <param name="rp2" type="text" value="0" label="Position (or range of positions) at which to begin searching for the second primer for full-length 3' end matching (for singleton primer removal)" help="Default of 0 means the search will begin at the last base of each read only. Specifying a range such as -1,1 (comma-separated) will allow the second primer to match starting at positions -1, 0, or 1 with respect to the last base."/>
+            <conditional name="internal2">
+              <param name="int2_opt" type="select" label="Would you like the program to search for internal matches of the second primer (for singleton primer removal)?">
+                <option value="no" selected="True">No</option>
+                <option value="yes">Yes</option>
+              </param>
+              <when value="yes">
+                <param name="rl2" type="integer" value="100" min="1" label="Length of the second primer to search for (internal matching)" help="Choosing a large value (e.g. 100) will ensure full-length matching regardless of primer length."/>
+                <param name="el2" type="integer" value="0" min="0" label="Mismatches to the second primer to allow (internal matching)"/>
+              </when>
+              <when value="no"/>
+            </conditional>
+            <conditional name="bed2">
+              <param name="bed2_opt" type="select" label="Would you like the program to search for (potentially limited) matches of the second primer using expected amplicon lengths (for singleton primer removal)?">
+                <option value="no" selected="True">No</option>
+                <option value="yes">Yes</option>
+              </param>
+              <when value="yes">
+                <param format="bed" name="bedfile2" type="data" label="File listing primer locations"/>
+                <param name="bp2" type="text" value="0" label="Position (or range of positions) at which to begin searching for the second primer based on expected length" help="Default of 0 means the search will begin at the expected length only. Specifying a range such as -1,1 (comma-separated) will allow the second primer to match starting at positions -1, 0, or 1 with respect to the expected length."/>
+              </when>
+              <when value="no"/>
+            </conditional>
+            <param name="rp2log_opt" type="boolean" truevalue="true" falsevalue="false" checked="false" label="Would you like primer removal output log files (for singletons)?"/>
+          </when>
+          <when value="no"/>
+        </conditional>
+
+        <!-- singleton filtering options -->
+        <param name="chim" type="boolean" truevalue="-c" falsevalue="" checked="false" label="Would you like to remove both singletons of a pair if they had different primers removed?"/>
+        <param name="both" type="boolean" truevalue="-b" falsevalue="" checked="false" label="Would you like remove any singleton that had one primer match if its pair had both primers match?"/>
+        <param name="qual" type="boolean" truevalue="-q" falsevalue="" checked="false" label="Would you like to keep only the higher quality singleton of a pair?"/>
+
+      </when>
+      <when value="no"/>
+    </conditional>
+
+  </inputs>
+
+  <outputs>
+    <data format="fastq" name="joined" label="${tool.name} on ${on_string}: joined reads, both primers removed"/>
+    <data format="fastq" name="comb" label="${tool.name} on ${on_string}: combined reads (joined and singletons)">
+      <filter>single['single_opt'] == "yes"</filter>
+    </data>
+    <data format="tabular" name="stitchlog" label="${tool.name} on ${on_string}: stitching log file">
+      <filter>stitch['stitch_opt'] == "yes" and stitch['stitchlog_opt'] is True</filter>
+    </data>
+    <data format="tabular" name="dovelog" label="${tool.name} on ${on_string}: stitching dovetail log file">
+      <filter>stitch['stitch_opt'] == "yes" and stitch['dove_opt'] is True and stitch['dovelog_opt'] is True</filter>
+    </data>
+    <data format="tabular" name="removePrimerlog" label="${tool.name} on ${on_string}: primer removal log file">
+      <filter>removePrimer['rp_opt'] == "yes" and removePrimer['rplog_opt'] is True</filter>
+    </data>
+    <data format="tabular" name="removePrimer1log" label="${tool.name} on ${on_string}: singleton primer removal log file #1">
+      <filter>single['single_opt'] == "yes" and single['removePrimer2']['rp2_opt'] == "yes" and single['removePrimer2']['rp2log_opt'] is True</filter>
+    </data>
+    <data format="tabular" name="removePrimer2log" label="${tool.name} on ${on_string}: singleton primer removal log file #2">
+      <filter>single['single_opt'] == "yes" and single['removePrimer2']['rp2_opt'] == "yes" and single['removePrimer2']['rp2log_opt'] is True</filter>
+    </data>
+  </outputs>
+
+  <help>
+This tool does preprocessing of reads. It stitches paired-end reads together
+and removes primers from both ends.
+
+For example, given the following paired-end reads::
+
+  @read1 1
+  CCCATATGGCACCAGAATTCTGA
+  +
+  BBBBBHHHHHHHHHHHHHHHHHH
+
+  @read1 2
+  GTTATCAGTCAGAATTCTGGTGC
+  +
+  BBBBBBFFFFFFFFFFFFFFFFF
+
+and the primer file::
+
+  AmpA,CCCAT,GATAAC
+
+the output file ("joined reads, both primers removed") is the following::
+
+  @read1 AmpA fwd both
+  ATGGCACCAGAATTCTGACT
+  +
+  HHHHHHHHHHHHHHHHHHFF
+
+Descriptions of the parameters of the stitching and primer removal steps can
+be found in the help messages of those tools (*Stitch* and *Remove PCR
+primers*). Note that both primers must be found in (and removed from) the
+stitched read.
+
+-----
+
+**Singleton Analysis**
+
+One can choose to have the reads that failed the above steps further
+analyzed. Primer removal is performed on each set of reads separately, with
+one being able to choose different parameters than those in the previous
+primer removal step.
+
+After primer removal, paired reads that both passed this step can be
+filtered by any (or all) of three criteria. Those that had different primers
+removed, like they were derived from a PCR chimera, can both be eliminated.
+If one read of a pair had both primers removed and the other did not, the
+other can be eliminated. Finally, average quality scores can be used to
+eliminate the lower quality read.
+
+The surviving singletons are combined with the joined reads to produce
+the output file "combined reads."
+
+  </help>
+
+</tool>

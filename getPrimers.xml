@@ -1,0 +1,38 @@
+<tool id="getprimers" name="Retrieve primers and target sequences">
+  <description> for a set of amplicons</description>
+  <command interpreter="perl">
+    getPrimers.pl "$bed" "$gen.fields.path" "$output"
+  </command>
+  <inputs>
+    <param format="bed" name="bed" type="data" label="File listing primer locations"/>
+    <param format="fasta" name="gen" type="select" label="Reference genome">
+      <options from_data_table="all_fasta"/>
+    </param>
+  </inputs>
+  <outputs>
+    <data format="csv" name="output" label="Primers and target sequences"/>
+  </outputs>
+
+  <help>
+This tool retrieves amplicon primer and target sequences.
+
+The BED input file must list two primers for each amplicon, with the same
+amplicon name (4th column). For example::
+
+  chr7   127413366   127413387   amplicon1
+  chr7   127413430   127413448   amplicon1
+  chr9   89010943    89010963    amplicon2
+  chr9   89011004    89011027    amplicon2
+
+The output file lists each amplicon name, followed by the sequences of the
+forward primer, the reverse primer, and the target, all comma-separated.  All
+sequences are given with respect to the plus strand (so the actual reverse
+primer is the reverse-complement of the listed sequence).
+
+The output for the above example (with hg38) is the following::
+
+  amplicon1,GAGTACTGGATTTCTTTGTCC,AAATAGAAAGATTTAGGG,ATTTCAGACAGAGGGTTCTGTGATTCTTTAAGAACTGTAACTA
+  amplicon2,CCCATGTGTCTGTGAGGCTC,GATAACTAATGTGTGCTCTAACC,ACAGGAATGGCCCACCACACAGTGCTGGAGGGAAGAGTTGG
+  </help>
+
+</tool>

@@ -1,0 +1,26 @@
+This set of scripts is designed to simulate reads derived from amplicon-based
+targeted resequencing.
+
+The run.sh script executes the entire pipeline using a pre-selected set of
+parameters.  It requires that ipcress (part of exonerate 2.4.0) be installed and
+available on the command-line.  It is run by the following command:
+
+   $ bash run.sh  <BED>  <GEN>  [<VAR>]
+
+where
+
+   <BED> is the file listing the locations of the PCR primers used for targeting,
+           in BED format;
+   <GEN> is the reference genome, in FASTA format;
+   <VAR> [optional] is the file specifying variants to be made in the simulated
+           reads.
+
+For convenience, a sample <BED> file and two sample <VAR> files are provided.
+Choosing different parameters can be accomplished by editing the run.sh script.
+
+A word of warning: ipcress is very computationally expensive, in terms of time
+and memory usage.  One may wish to use a limited number of amplicons, or decrease
+the allowed number of mismatches ('mis', line 45) for the ipcress search.
+
+- John M. Gaspar (jmgaspar@gwu.edu)
+  June 2015

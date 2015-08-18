@@ -1,0 +1,39 @@
+This set of tools is designed to detect variants in a sample that has been analyzed
+by amplicon-based targeted resequencing.
+
+The three C programs (stitch, removePrimer, and qualTrim) need to be compiled.  They
+have been tested after compilation with gcc (version 4.8.2).  To compile with gcc,
+one can simply run 'make' on the command-line.
+
+To execute the pipeline, the programs/scripts can be run via the Galaxy platform,
+the command-line, or the run.sh script:
+
+1. The included XML files wrap each of the tools for use in an instance of Galaxy.
+Before running the workflow, one must compile the C programs (via 'make') and check
+that they and the Perl scripts are executable and in the $PATH.
+
+2. The command-line usage of each tool can be found by running it with '-h' (or
+without any command-line arguments).
+
+3. The run.sh script executes the entire pipeline using a pre-selected set of
+parameters.  It requires that bowtie2 (2.2.3), samtools (0.1.19), and VarScan (2.3.7)
+be installed and available on the command-line (the path to the VarScan jar file must
+be set in the run.sh script).  It is run by the following command:
+
+   $ bash run.sh  <FASTQ1>  <FASTQ2>  <BED>  <GEN>  <IDX>  <DIR>
+
+where
+
+   <FASTQ1> and <FASTQ2> are the paired-end sequencing files;
+   <BED> is the file listing the locations of the PCR primers used for targeting,
+           in BED format;
+   <GEN> is the reference genome, in FASTA format;
+   <IDX> is the Bowtie2-index prefix (if not available, the indexes will be
+           generated using <GEN>);
+   <DIR> is the directory for the output files.
+
+Choosing different parameters, or saving various intermediate files, can be
+accomplished by editing the run.sh script.
+
+- John M. Gaspar (jmgaspar@gwu.edu)
+  June 2015

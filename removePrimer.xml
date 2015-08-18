@@ -1,0 +1,313 @@
+<tool id="removeprimer" name="Remove PCR primers">
+  <description> from a set of reads</description>
+  <command>
+    removePrimer -i "$in" -p "$prim" -o "$out" $require
+
+    ## output files
+    #if str( $output.output_selector ) == "yes":
+      #if str( $output.log_opt ) == "true":
+        -l "$log"
+      #end if
+      #if str( $output.nonmatch_opt ) == "true":
+        -w "$nonmatch"
+      #end if
+      #if str( $output.correct_opt ) == "true":
+        -c "$corr"
+      #end if
+    #end if
+
+    ## matching parameters
+    #if str( $extended.extended_selector ) == "yes":
+      -ef "$extended.ef"
+      -fp "$extended.fp" 
+      -er "$extended.er"
+      -rp "$extended.rp"
+      #if str( $extended.internal.internal_selector ) == "yes":
+        -el "$extended.internal.el"
+        -rl "$extended.internal.rl"
+      #end if
+      #if str( $extended.bedlength.bedlength_selector ) == "yes":
+        -b "$extended.bedlength.bed"
+        -bp "$extended.bedlength.bp"
+      #end if
+    #end if
+
+  </command>
+  <inputs>
+    <param format="fastq,fasta" name="in" type="data" label="File containing query reads" help="FASTA or FASTQ format"/>
+    <param format="tabular" name="prim" type="data" label="File listing primer sequences" help="See &quot;Primer file&quot; section below for formatting information."/>
+    <param name="require" type="boolean" truevalue="-rq" falsevalue="" checked="false" label="Would you like to require that both primers be found?" help="By default, only one primer match (at the beginning of the read) is required for a read to be processed."/>
+
+    <conditional name="output">
+      <param name="output_selector" type="select" label="Would you like to choose additional output files?" help="By default, one output file (listing reads with primers removed) is produced.">
+        <option value="no" selected="True">No</option>
+        <option value="yes">Yes</option>
+      </param>
+      <when value="yes">
+        <param name="log_opt" type="boolean" truevalue="true" falsevalue="false" checked="false" label="Would you like an output log file?"/>
+        <param name="nonmatch_opt" type="boolean" truevalue="true" falsevalue="false" checked="false" label="Would you like an output file listing reads that failed primer matching?"/>
+        <param name="correct_opt" type="boolean" truevalue="true" falsevalue="false" checked="false" label="Would you like an output file listing reads with correct primers reattached?" help="Should be selected only if requiring both primers be removed."/>
+      </when>
+      <when value="no"/>
+    </conditional>
+
+    <conditional name="extended">
+      <param name="extended_selector" type="select" label="Would you like to set additional primer-matching parameters?">
+        <option value="no" selected="True">No</option>
+        <option value="yes">Yes</option>
+      </param>
+      <when value="yes">
+        <param name="ef" type="integer" value="0" min="0" label="Mismatches to the first primer to allow"/>
+        <param name="fp" type="text" value="0" label="Position (or range of positions) at which to begin searching for the first primer" help="Default of 0 means the search will begin at the first base of each read only. Specifying a range such as -1,1 (comma-separated) will allow the first primer to match starting at positions -1, 0, or 1."/>
+        <param name="er" type="integer" value="0" min="0" label="Mismatches to the second primer to allow for full-length 3' end matching"/>
+        <param name="rp" type="text" value="0" label="Position (or range of positions) at which to begin searching for the second primer for full-length 3' end matching" help="Default of 0 means the search will begin at the last base of each read only. Specifying a range such as -1,1 (comma-separated) will allow the second primer to match starting at positions -1, 0, or 1 with respect to the last base."/>
+
+        <conditional name="internal">
+          <param name="internal_selector" type="select" label="Would you like the program to search for internal matches of the second primer?">
+            <option value="no" selected="True">No</option>
+            <option value="yes">Yes</option>
+          </param>
+          <when value="yes">
+            <param name="rl" type="integer" value="100" min="1" label="Length of the second primer to search for (internal matching)" help="Choosing a large value (e.g. 100) will ensure full-length matching regardless of primer length."/>
+            <param name="el" type="integer" value="0" min="0" label="Mismatches to the second primer to allow (internal matching)"/>
+          </when>
+          <when value="no"/>
+        </conditional>
+
+        <conditional name="bedlength">
+          <param name="bedlength_selector" type="select" label="Would you like the program to search for (potentially limited) matches of the second primer using expected amplicon lengths?">
+            <option value="no" selected="True">No</option>
+            <option value="yes">Yes</option>
+          </param>
+          <when value="yes">
+            <param format="bed" name="bed" type="data" label="File listing primer locations"/>
+            <param name="bp" type="text" value="0" label="Position (or range of positions) at which to begin searching for the second primer based on expected length" help="Default of 0 means the search will begin at the expected length only. Specifying a range such as -1,1 (comma-separated) will allow the second primer to match starting at positions -1, 0, or 1 with respect to the expected length."/>
+          </when>
+          <when value="no"/>
+        </conditional>
+
+      </when>
+      <when value="no"/>
+
+    </conditional>
+
+  </inputs>
+
+  <outputs>
+    <data format="fastq" name="out" label="${tool.name} on ${on_string}: reads with primer(s) removed">
+      <change_format>
+        <when input_dataset="in" attribute="ext" value="fasta" format="fasta"/>
+      </change_format>
+    </data>
+
+    <data format="tabular" name="log" label="${tool.name} on ${on_string}: log file">
+      <filter>output['output_selector'] == "yes" and output['log_opt'] is True</filter>
+    </data>
+
+    <data format="fastq" name="nonmatch" label="${tool.name} on ${on_string}: reads that failed primer matching">
+      <filter>output['output_selector'] == "yes" and output['nonmatch_opt'] is True</filter>
+      <change_format>
+        <when input_dataset="in" attribute="ext" value="fasta" format="fasta"/>
+      </change_format>
+    </data>
+
+    <data format="fastq" name="corr" label="${tool.name} on ${on_string}: reads with correct primers reattached">
+      <filter>output['output_selector'] == "yes" and output['correct_opt'] is True</filter>
+      <change_format>
+        <when input_dataset="in" attribute="ext" value="fasta" format="fasta"/>
+      </change_format>
+    </data>
+
+  </outputs>
+
+  <help>
+This tool removes PCR primers from reads in a FASTA or FASTQ file. For each
+read in the file, it searches the beginning for a match to any primer. If a
+match is found, it then searches for the second primer of the amplicon, as
+outlined below ("Second primer search"). The output file, in the same format
+as the input file (FASTA or FASTQ), gives the reads with the primer(s) removed
+and information about the primer(s) written to the headers.
+
+For example, given the FASTQ file::
+
+  @read1
+  CCCATATGGCACCAGAAGATAAC
+  +
+  BBBBBHHHHHHHHHHHHBBBBBB
+  @read2
+  CTATTTTGAACTTCGGGGTACCC
+  +
+  BBBBBBHHHHHHHHHHHBBBBBB
+
+and the primer file::
+
+  AmpA,GAGTAC,AAATAG
+  AmpB,CCCAT,GATAAC
+
+the output file ("reads with primer(s) removed") is the following::
+
+  @read1 AmpB fwd both
+  ATGGCACCAGAA
+  +
+  HHHHHHHHHHHH
+  @read2 AmpA rev
+  TGAACTTCGGGGTACCC
+  +
+  HHHHHHHHHHHBBBBBB
+
+With read1, both primers for AmpB were removed (CCCAT at the beginning, and
+GATAAC at the end). The header lists the first primer ("AmpB fwd") and the
+fact that both primers were removed ("both").
+
+With read2, the sequence began with the actual reverse primer (CTATTT), which
+is the reverse-complement of the sequence listed for the reverse primer of
+AmpA (AAATAG) (see "Primer file", below). The second primer, GTACTC (the
+reverse-complement of the sequence of the forward primer of AmpA), was not
+removed because it does not match the end of read2 (GTACCC). The header
+lists only the first primer ("AmpA rev").
+
+-----
+
+**Output File Options**
+
+The user has the option of producing output files in addition to the default
+("reads with primer(s) removed"). The log file lists each amplicon and the
+counts of primer matches. The file of failed primer matches gives all of the
+reads not in the default output, in the same format as the input (FASTA or
+FASTQ). The file of reads with correct primers reattached lists the reads with
+the correct primer sequences appended to the beginning and end of each, so it
+should only be selected if both primers are required to be removed from the
+reads. In the case of an input FASTQ file, the bases of the reattached primers
+are assigned quality scores of 'I'.
+
+-----
+
+**Analysis Options**
+
+**-- Requirement option:** One can require that both primers be found in (and
+removed from) a read. If that option were chosen with the above example, read2
+would be listed under "failed primer matching" because the second primer was not
+found.
+
+**-- Mismatches:** One can specify a number of mismatches to allow in the search
+for primers. Only substitutions are allowed, not insertions or deletions. In
+the above example, if at least one mismatch were allowed in the search for the
+second primer ("full-length 3' end matching"), the end of read2 would be
+considered a match to the second primer, resulting in the following::
+
+  @read2 AmpA rev both
+  TGAACTTCGGG
+  +
+  HHHHHHHHHHH
+
+**-- Positions:** One can adjust the position(s) at which the tool searches for
+primers. This is important in cases where amplicons are designed beginning with
+a number of Ns. Also, specifying a range of positions provides some flexibility
+in the primer search. For example, a range of "-1,1" for the first primer search
+means each primer will be tested for matching at positions -1, 0, and 1::
+
+           @read1
+           CCCATATGGCACCAGAAGATAAC
+  pos -1  CCCAT
+  pos  0   CCCAT
+  pos +1    CCCAT
+
+The same range in the search for the second primer (full-length 3' end
+matching)::
+
+           @read1
+           CCCATATGGCACCAGAAGATAAC
+  pos -1                     GATAAC
+  pos  0                    GATAAC
+  pos +1                   GATAAC
+
+In both cases, the primers matched at the default (position 0), and would have
+matched with any range of positions that included 0.
+
+-----
+
+**Second primer search**
+
+After a first primer match is found for a read, the tool searches the read
+for the second primer of the amplicon. This search can occur by three
+different methods.
+
+1. By default, the tool searches the end of the read for a perfect match of
+the full-length second primer. One can specify a number of mismatches and
+adjust the positions where potential matches begin, as outlined above.
+
+2. The tool can search for internal matches of the second primer, meaning
+that the primer can match starting at any position downstream of the first
+primer. One can specify a length less than the full-length primer to match,
+which is useful in cases where a read does not span the second primer, or
+where a read has errors in the second primer sequence. For example, in the
+above case of read2, choosing a value of 4 for the primer length would lead to
+a match, since the first four bases of the second primer (GTAC) are a match to
+read2. Of course, in practice such a small value for the length parameter
+would surely lead to false matches. At the other extreme, one can ensure
+full-length matching by choosing a large value (e.g. 100). One can also
+specify a number of mismatches in this search.
+
+3. The tool can search for the second primer based on expected amplicon
+lengths. It calculates the target length from the given BED file, and then,
+using the position of the first primer match, it searches for the second
+primer at the appropriate location. This is particularly useful in cases
+where only a small fragment of the second primer appears at the end of the
+read, and thus would be missed by the above two methods. One can specify
+a range of positions (with respect to the expected location) at which to
+search for the second primer, in case of in/del(s) in the target region.
+However, mismatches are not allowed, since the search may range, with
+different amplicons, from the full-length primer to just a few bases.
+
+-----
+
+**Primer file**
+
+This input file should list, on each line, an amplicon name, followed by the
+sequences of the forward and reverse primers, comma- or tab-delimited.
+
+For example::
+
+  341F-806R,CCTAYGGGRBGCASCAG,ATTAGATACCCBRGTAGTCC
+  857F-1196R,CGWAGGGAAGCTGTTAAGT,AAGGAGTGGACGACGGTA
+
+Both primers should be given with respect to the plus strand (so the actual
+reverse primer is the reverse-complement of the sequence in the third column).
+
+The sequences can contain IUPAC ambiguous DNA codes.
+
+-----
+
+**A note on terminology**
+
+With respect to PCR primers, the use of the terms *forward*, *reverse*,
+*first*, *second*, *plus strand*, *minus strand*, with
+*reverse-complement* occasionally thrown in, can be confusing. Here is how
+the terms are used for this tool.
+
+  **forward / reverse:** An amplicon consists of a forward primer, a reverse
+  primer, and an intervening target region. The terms *forward* and *reverse*
+  refer to the relative positions on the chromosome or genome, with the forward
+  primer being closer to base number 1. So the forward primer is 5' to 3'
+  on the plus strand, and the reverse primer is 5' to 3' on the minus strand.
+
+A read derived from the sequencing of a PCR product should contain one (or
+both) primers. If a read came from sequencing on the plus strand, the
+beginning of the read will contain the forward primer followed by the target
+region; depending on the lengths of the amplicon and read, the end of the
+read may have the reverse-complement of the reverse primer. However, a read
+may just as well have come from sequencing on the minus strand, in which case
+the beginning will have the reverse primer, and the end may have the
+reverse-complement of the forward primer.
+
+  **first / second:** This tool uses *first* to refer to the primer that is
+  found at the beginning (5' end) of a read. Similarly, the *second* primer is
+  the primer (or fragment) that may be at the end (3') of a read.
+
+Again, from the Department of Redundancy Department: the first primer is not
+necessarily the forward primer of an amplicon. Reads derived from the minus
+strand will have the reverse primer as the first primer.
+
+  </help>
+
+</tool>

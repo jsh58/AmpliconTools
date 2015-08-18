@@ -1,0 +1,85 @@
+<tool id="qualtrim" name="Quality filtering">
+  <description> of reads based on quality scores and length</description>
+  <command>
+    qualTrim -i "$in" -o "$out" -l "$l" -q "$q" -t "$t" -n "$n"
+    #if str($trim.trim_opt) == "five":
+      -5
+    #elif str($trim.trim_opt) == "three":
+      -3
+    #end if
+  </command>
+  <inputs>
+    <param format="fastqsanger" name="in" type="data" label="FASTQ file" help="Must be of datatype &quot;fastqsanger&quot;"/>
+    <param name="l" type="integer" value="0" min="0" label="Length of window of quality scores to examine"/>
+    <param name="q" type="float" value="0" min="0" label="Minimum average quality for the window"/>
+    <conditional name="trim">
+      <param name="trim_opt" type="select" label="How would you like the window-based trimming to be performed?">
+        <option value="both" selected="True">Trim both ends</option>
+        <option value="five">Trim the 5' end only</option>
+        <option value="three">Trim the 3' end only</option>
+      </param>
+      <when value="both"/>
+      <when value="five"/>
+      <when value="three"/>
+    </conditional>
+    <param name="t" type="float" value="0" min="0" label="Minimum average quality for the full-length read" help="After any window-based truncations"/>
+    <param name="n" type="integer" value="0" min="0" label="Minimum read length" help="After any window-based truncations"/>
+  </inputs>
+  <outputs>
+    <data format="fastqsanger" name="out" label="${tool.name} on ${on_string}"/>
+  </outputs>
+
+  <help>
+This tool filters reads based on quality scores, using a window-based average,
+a full-length average, or both. It also removes reads shorter than a specified
+minimum length. There is no default filtering.
+
+-----
+
+**Window-based trimming**
+
+If a window-based average is selected, a sliding window of quality scores will
+be examined from each end of a read. The window stops sliding when the average
+of that window is at least the minimum specified. If there was a bad window,
+the read is truncated to remove the low-quality region.
+
+For example::
+
+  @read1
+  ACGTACGTACGTACGT
+  +
+  #012HHHHHHHHHHH#
+
+Using a window size of 3bp and a minimum quality of 20.0 produces::
+
+  @read1
+  ACGTACGTACG
+  +
+  HHHHHHHHHHH
+
+Note: at the very ends of the read, windows of quality scores smaller than
+the specified value are also examined. This is why the 3' end of read1
+was truncated of its last base.
+
+Rather than examine both ends of a read, one can choose to perform these
+truncations at only the 5' end or 3' end.
+
+-----
+
+**Full-length average**
+
+If a full-length average is selected, any read whose quality scores average
+less than the specified minimum is eliminated.
+
+For example, the average quality score of read1 (above) is 30.06. It will be
+eliminated (not printed to the output file) if a minimum average above this
+value is chosen.
+
+Note: the full-length average is calculated *after* any window-based
+truncations have occurred. So, even with a full-length average quality score
+of 35.0, read1 would *not* be eliminated if the above window-based criteria
+(3bp length, 20.0 min. avg.) were selected, since the resulting truncated
+read has an average quality of 39.0.
+  </help>
+
+</tool>

@@ -1,0 +1,138 @@
+<tool id="stitch" name="Stitch">
+  <description> together paired-end reads</description>
+  <command>
+    stitch -1 "$in1" -2 "$in2" -o "$out" -m "$overlap" -p "$pct" $short_opt
+
+    #if str( $dove_opt ) == "true":
+      -d
+      #if str( $dovelog_opt ) == "true":
+        -dl "$dovelog"
+      #end if
+    #end if
+
+    #if str( $un_opt ) == "true":
+      -u1 "$un1" -u2 "$un2"
+    #end if
+
+    #if str( $log_opt ) == "true":
+      -l "$log"
+    #end if
+
+  </command>
+
+  <inputs>
+    <param format="fastq" name="in1" type="data" label="FASTQ file #1"/>
+    <param format="fastq" name="in2" type="data" label="FASTQ file #2"/>
+    <param name="overlap" type="integer" value="20" min="0" label="Minimum overlap of the paired-end reads"/>
+    <param name="pct" type="float" value="0" min="0" max="1" label="Mismatches to allow in the overlapped region" help="A fraction of the overlap length. For example, a value of 0.05 means that up to 5% of the overlapping bases can be mismatches. 'N's do not count as mismatches (see &quot;Ambiguous bases&quot; below)."/>
+    <param name="dove_opt" type="boolean" truevalue="true" falsevalue="false" checked="false" label="Would you like to check for dovetailing of the reads?" help="Using the same minimum overlap (selected above)"/>
+    <param name="short_opt" type="boolean" truevalue="-n" falsevalue="" checked="false" label="Would you like to produce the shortest stitched read possible?" help="For reads with multiple overlapping possibilities. By default, the longest stitched read is produced."/>
+    <param name="un_opt" type="boolean" truevalue="true" falsevalue="false" checked="false" label="Would you like output files listing stitch failures?"/>
+    <param name="log_opt" type="boolean" truevalue="true" falsevalue="false" checked="false" label="Would you like an output log file?"/>
+    <param name="dovelog_opt" type="boolean" truevalue="true" falsevalue="false" checked="false" label="Would you like an output log file for the dovetailed reads?" help="Created only if checking for dovetailing"/>
+  </inputs>
+
+  <outputs>
+    <data format="fastq" name="out" label="${tool.name} on ${on_string}: stitched reads"/>
+    <data format="fastq" name="un1" label="${tool.name} on ${on_string}: stitch failures #1">
+      <filter>un_opt is True</filter>
+    </data>
+    <data format="fastq" name="un2" label="${tool.name} on ${on_string}: stitch failures #2">
+      <filter>un_opt is True</filter>
+    </data>
+    <data format="tabular" name="log" label="${tool.name} on ${on_string}: log file">
+      <filter>log_opt is True</filter>
+    </data>
+    <data format="tabular" name="dovelog" label="${tool.name} on ${on_string}: dovetail log file">
+      <filter>dove_opt is True and dovelog_opt is True</filter>
+    </data>
+  </outputs>
+
+  <help>
+This tool stitches paired-end reads together. It requires two input FASTQ
+files that list the reads in the same order. It attempts to align the reads,
+given the minimum overlap and maximum mismatch parameters.
+
+When an optimal alignment is found, a single consensus sequence is created.
+The sequence begins at the position of 5' end of the first read and ends at
+the 5' end of the second read. Where the reads overlap, the quality score of
+each base is given by the higher of the two. When the reads disagree on the
+nucleotide at a given position, the base with the higher quality score is
+used. If they disagree but have the same quality score, the base that is
+closer to the 5' end of its read is used.
+
+For example, given the following paired-end reads::
+
+  @read1 1
+  ACGTTAGAA
+  +
+  HHHHHHHHH
+
+  @read1 2
+  AGTTCTTAC
+  +
+  FFFFFFFFF
+
+the optimal alignment is::
+
+  ACGTTAGAA
+    GTAAGAACT  (reverse-complemented)
+  HHHHHHHHH
+    FFFFFFFFF
+
+and the stitched read is::
+
+  @read1
+  ACGTTAGAACT
+  +
+  HHHHHHHHHFF
+
+-----
+
+**Output File Options**
+
+The user has the option of producing output files in addition to the default
+("stitched reads"). The "stitch failures" files list the reads that were not
+stitched, in their original form. The log file lists each read analyzed,
+followed by the length of the overlap (or "n/a" for stitch failures), the
+length of the stitched read, and the mismatch fraction. The dovetail log file
+lists the overhanging 3' end(s) of each read whose optimal alignment was
+dovetailed (see below).
+
+-----
+
+**Dovetailed Reads**
+
+Reads derived from DNA segments that are longer than each paired-end read
+will contain overhanging 3' ends. The same may be true of reads whose pair has
+been truncated. The overhanging 3' ends will prevent the reads from being
+joined by other programs. This tool will consider "dovetailed" alignments
+with overhanging 3' ends if that option is selected. The ends of the stitched
+read are still defined by the 5' ends of the reads. So the alignment::
+
+    ACGTTAGAA
+  TAACGTTAG
+
+would result in the stitched read::
+
+  @read1
+  ACGTTAG
+
+-----
+
+**Ambiguous Bases (N)**
+
+This tool counts ambiguous bases as neither matches nor mismatches.
+For example::
+
+  TGAACTTCGGG
+  TGCACTNCGGG
+
+This alignment is considered to be 10bp in length (11bp, minus 1 for the N),
+with 1 mismatch (A>C; the T>N does not count). It would be rejected if the
+minimum overlap parameter were greater than 10, or if the allowed mismatches
+parameter were less than 0.10.
+
+  </help>
+
+</tool>
