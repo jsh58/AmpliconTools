@@ -1,9 +1,9 @@
 <tool id="lengthvars" name="Align length-variant reads">
   <description> to expected amplicon target sequences</description>
   <command>
-    findLengthVars.pl "$fastq" "$bed" temp0 "$pct" "$len";
-    getLengthVars.pl "$fastq" temp0 temp1;
-    alignLengthVars.pl temp1 "$prim" "$bed" "$out"
+    $__tool_directory__/findLengthVars.pl "$fastq" "$bed" temp0 "$pct" "$len";
+    $__tool_directory__/getLengthVars.pl "$fastq" temp0 temp1;
+    $__tool_directory__/alignLengthVars.pl temp1 "$prim" "$bed" "$out"
     #if str( $log_opt ) == "true":
       "$log"
     #end if

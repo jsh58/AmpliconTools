@@ -1,11 +1,11 @@
 <tool id="makevcf" name="Construct a VCF">
   <description> using outputs from VarScan</description>
   <command>
-    makeVCF.pl "$snp" "$ind" "$pil" temp0 "$qual" "$lab";
+    $__tool_directory__/makeVCF.pl "$snp" "$ind" "$pil" temp0 "$qual" "$lab";
 
     ## add HP to VCF
     #if str( $addhp.addhp_opt ) == "yes":
-      addHPtoVCF.pl temp0 "$addhp.gen.fields.path" temp1
+      $__tool_directory__/addHPtoVCF.pl temp0 "$addhp.gen.fields.path" temp1
       #if str( $addhp.log_opt ) == "true":
         "$log"
       #end if
@@ -14,7 +14,7 @@
 
     ## filter VCF
     #if str( $filter.filter_opt ) == "yes":
-      filterVCF.pl temp0 "$out"
+      $__tool_directory__/filterVCF.pl temp0 "$out"
       #if str( $filter.bedfile.bed_opt ) == "yes":
         -b "$filter.bedfile.bed"
       #end if

@@ -10,8 +10,7 @@ platform, the command-line, or the run.sh script:
 
 1. The included XML files wrap each of the tools for use in an instance of
 Galaxy. Before running the workflow, one must compile the C programs (via
-'make') and check that they and the Perl scripts are executable and in the
-$PATH.
+'make') and check that they and the Perl scripts are executable.
 
 2. The command-line usage of each tool can be found by running it with '-h'
 (or without any command-line arguments).
