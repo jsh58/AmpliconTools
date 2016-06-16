@@ -29,7 +29,7 @@ usage() if (scalar @ARGV < 3 || $ARGV[0] eq "-h");
 
 open(BED, $ARGV[0]) || die "Cannot open $ARGV[0]\n";
 open(GEN, $ARGV[1]) || die "Cannot open $ARGV[1]\n";
-open(OUT, ">$ARGV[2]");
+open(OUT, ">$ARGV[2]") || die "Cannot open $ARGV[2]\n";
 
 # load primer locations: chr# - 5'Loc - 5'PLen - targLen - 3'PLen
 my %pos;
