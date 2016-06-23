@@ -5,7 +5,7 @@ The run.sh script executes the entire pipeline using a pre-selected set of
 parameters.  It requires that ipcress (part of exonerate 2.4.0) be installed and
 available on the command-line.  It is run by the following command:
 
-   $ bash run.sh  <BED>  <GEN>  [<VAR>]
+   $ ./run.sh  <BED>  <GEN>  [<VAR>]
 
 where
 
@@ -17,6 +17,9 @@ where
 
 For convenience, a sample <BED> file and two sample <VAR> files are provided.
 Choosing different parameters can be accomplished by editing the run.sh script.
+
+Since output file names are specified in run.sh, one should not execute multiple
+instances in the same location.
 
 A word of warning: ipcress is very computationally expensive, in terms of time
 and memory usage.  One may wish to use a limited number of amplicons, or decrease

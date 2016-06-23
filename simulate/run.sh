@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -e
 
 # John M. Gaspar
 # June 2015

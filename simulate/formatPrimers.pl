@@ -24,7 +24,7 @@ usage() if (scalar @ARGV < 2 || $ARGV[0] eq "-h");
 
 # open files
 open(IN, $ARGV[0]) || die "Cannot open $ARGV[0]\n";
-open(OUT, ">$ARGV[1]");
+open(OUT, ">$ARGV[1]") || die "Cannot open $ARGV[1] for writing\n";
 
 # load min/max lengths
 my $min = 50;

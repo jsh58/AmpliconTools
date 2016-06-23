@@ -26,7 +26,7 @@ usage() if (scalar @ARGV < 4 || $ARGV[0] eq "-h");
 open(IP, $ARGV[0]) || die "Cannot open $ARGV[0]\n";
 open(PR, $ARGV[1]) || die "Cannot open $ARGV[1]\n";
 open(FA, $ARGV[2]) || die "Cannot open $ARGV[2]\n";
-open(OUT, ">$ARGV[3]");
+open(OUT, ">$ARGV[3]") || die "Cannot open $ARGV[3] for writing\n";
 my $pct = 0.75;
 if (scalar @ARGV > 4) {
   die "Minimum primer matching score must be in [0,1]\n"
@@ -53,8 +53,14 @@ my $waste = <FA>;
 while (my $chunk = <FA>) {
   chomp $chunk;
   my @spl = split("\n", $chunk);
-  my $ch = shift @spl;
-  $chr{$ch} = join("", @spl);
+  my @head = split(" ", shift @spl);
+  my $ch = $head[0];
+  if (exists $chr{$ch}) {
+    print STDERR "Warning! In reference genome $ARGV[2]:\n",
+      "  Chromosome name $ch repeated\n";
+  } else {
+    $chr{$ch} = join("", @spl);
+  }
 }
 close FA;
 
@@ -70,7 +76,7 @@ while (my $line = <IP>) {
   my @div = split(':', $spl[1]);
   # skip if no genomic segment loaded
   if (! exists $chr{$div[0]}) {
-    print "Warning! No sequence loaded for reference $div[0]\n";
+    print STDERR "Warning! No sequence loaded for reference $div[0]\n";
     next;
   }
 
