@@ -30,7 +30,7 @@ usage() if (scalar @ARGV < 3 || $ARGV[0] eq "-h");
 
 open(FQ, $ARGV[0]) || die "Cannot open $ARGV[0]\n";
 open(SAM, $ARGV[1]) || die "Cannot open $ARGV[1]\n";
-open(OUT, ">$ARGV[2]");
+open(OUT, ">$ARGV[2]") || die "Cannot open $ARGV[2] for writing\n";
 
 # load expected amplicon locations (convert to 1-based;
 #   allow 100bp "wiggle room" to both sides of amplicon)
