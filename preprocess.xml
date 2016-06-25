@@ -1,4 +1,4 @@
-<tool id="preprocess" name="Preprocess reads">
+<tool id="preprocess" name="Preprocess reads" version="1.1">
   <description>by stitching and removing primers</description>
   <command>
 

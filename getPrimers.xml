@@ -1,4 +1,4 @@
-<tool id="getprimers" name="Retrieve primers and target sequences">
+<tool id="getprimers" name="Retrieve primers and target sequences" version="1.1">
   <description> for a set of amplicons</description>
   <command interpreter="perl">
     getPrimers.pl "$bed" "$gen.fields.path" "$output"

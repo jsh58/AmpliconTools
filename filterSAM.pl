@@ -36,10 +36,12 @@ open(FQ, $ARGV[0]) || die "Cannot open $ARGV[0]\n";
 open(BED, $ARGV[1]) || die "Cannot open $ARGV[1]\n";
 open(ALT, $ARGV[2]) || die "Cannot open $ARGV[2]\n";
 open(SAM, $ARGV[3]) || die "Cannot open $ARGV[3]\n";
-open(OUT, ">$ARGV[4]");
+open(OUT, ">$ARGV[4]") || die "Cannot open $ARGV[4] for writing\n";
 if (scalar @ARGV > 5) {
   open(ALN, $ARGV[5]) || die "Cannot open $ARGV[5]\n";
-  open(LOG, ">$ARGV[6]") if (scalar @ARGV > 6);
+}
+if (scalar @ARGV > 6) {
+  open(LOG, ">$ARGV[6]") || die "Cannot open $ARGV[6] for writing\n"
 }
 
 my $maxExt = 0.75;  # maximum match of external in/del to consider --
@@ -60,15 +62,15 @@ while (my $line = <BED>) {
   chomp $line;
   my @spl = split("\t", $line);
   if (scalar @spl < 4) {
-    print "Warning! Improperly formatted line in $ARGV[1]: $line\n  ",
+    print STDERR "Warning! Improperly formatted line in $ARGV[1]: $line\n  ",
       "Need chromName, chromStart, chromEnd, and ampliconName (tab-delimited)\n";
     next;
   }
   if (exists $pos{$spl[3]}) {
     my @div = split("\t", $pos{$spl[3]});
     if ($div[0] ne $spl[0]) {
-      print "Warning: skipping amplicon $spl[3] -- ",
-        "located at chromosomes $spl[0] and $div[0]!?\n";
+      print STDERR "Warning! Skipping amplicon $spl[3] --\n",
+        "  located at chromosomes $spl[0] and $div[0]!?\n";
     } else {
       # 20bp wiggle room on either side
       $loc{$spl[3]} = ($spl[1] < $div[1] ?
@@ -113,7 +115,7 @@ while (my $line = <FQ>) {
       if (exists $amp{$que}) {
         my @div = split("\t", $amp{$que});
         if ($id ne $div[0]) {
-          print "Warning! Primers do not match for read $que\n";
+          print STDERR "Warning! Primers do not match for read $que\n";
           delete $amp{$que};
           last;
         }
@@ -132,7 +134,8 @@ while (my $line = <FQ>) {
   }
 
   if (! exists $amp{$que}) {
-    print "Warning! Skipping read $que -- no amplicon found\n";
+    print STDERR "Warning! Skipping read $que --\n",
+      "  no amplicon found\n";
     $line = <FQ>;
   } 
   $count++;
@@ -235,7 +238,7 @@ while ($line) {
     }
   } elsif (! exists $amp{$spl[0]}) {
     # no amplicon info: save results, check for new alignment
-    print "Warning: no amplicon info for read $spl[0]\n";
+    print STDERR "Warning! No amplicon info for read $spl[0]\n";
     push @res, $line;
     while ($line = <SAM>) {
       chomp $line;
@@ -301,7 +304,7 @@ while ($line) {
           $pr = $amp{$div[0]};
         }
         if (!$pr) {
-          print "Warning! No removed-primer info for read $div[0]\n";
+          print STDERR "Warning! No removed-primer info for read $div[0]\n";
           #push @res, $line;  # save mapping(?)
           $line = <SAM>;
           next;
@@ -310,7 +313,7 @@ while ($line) {
         # check alternative location
         my $lc = ($rc ? '-' : '+')."\t$div[2]\t$pos"; # 2nd key to %alt
         if ((! exists $alt{$pr}) || (! exists $alt{$pr}{$lc})) {
-          print "Warning! No alt. location info for read $div[0], $pr\t$lc\n";
+          print STDERR "Warning! No alt. location info for read $div[0], $pr\t$lc\n";
           #push @res, $line;  # save mapping(?)
           $line = <SAM>;
           next;
@@ -406,7 +409,7 @@ while ($line) {
         $pral++ if (!$x);
       }
     } else {
-      print "Warning! Cannot consider realignment for read $spl[0]\n",
+      print STDERR "Warning! Cannot consider realignment for read $spl[0]\n",
         "Sequences do not match:\n$div[6]\n$seq\n";
     }
   }
@@ -494,7 +497,7 @@ sub getTag {
     }
   }
   if ($ret == 1000) {
-    print "Error! Cannot find $tag in SAM record:\n",
+    print STDERR "Error! Cannot find $tag in SAM record:\n",
       join("\t", @spl), "\n";
     die;
   }

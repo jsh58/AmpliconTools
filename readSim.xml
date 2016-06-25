@@ -1,4 +1,4 @@
-<tool id="readsim" name="Simulate paired-end reads">
+<tool id="readsim" name="Simulate paired-end reads" version="1.1">
   <description> for a set of amplicons</description>
   <command interpreter="perl">
     readSim.pl "$ipc" "$prim" "$gen.fields.path" "$out1" "$out2"

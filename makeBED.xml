@@ -1,4 +1,4 @@
-<tool id="makebed" name="Make a BED file">
+<tool id="makebed" name="Make a BED file" version="1.1">
   <description> using amplicon specifications</description>
   <command interpreter="perl">
     makeBED.pl "$in" "$out"

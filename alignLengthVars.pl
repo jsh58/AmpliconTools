@@ -30,8 +30,10 @@ usage() if (scalar @ARGV < 4 || $ARGV[0] eq "-h");
 open(FQ, $ARGV[0]) || die "Cannot open $ARGV[0]\n";
 open(PR, $ARGV[1]) || die "Cannot open $ARGV[1]\n";
 open(BED, $ARGV[2]) || die "Cannot open $ARGV[2]\n";
-open(OUT, ">$ARGV[3]");
-open(LOG, ">$ARGV[4]") if (scalar @ARGV > 4);
+open(OUT, ">$ARGV[3]") || die "Cannot open $ARGV[3] for writing\n";
+if (scalar @ARGV > 4) {
+  open(LOG, ">$ARGV[4]") || die "Cannot open $ARGV[4] for writing\n"
+}
 if (scalar @ARGV > 5) {
   open(GEN, $ARGV[5]) || die "Cannot open $ARGV[5]\n";
 }
@@ -56,7 +58,7 @@ while (my $line = <BED>) {
   chomp $line;
   my @spl = split("\t", $line);
   if (scalar @spl < 4) {
-    print "Warning! Improperly formatted line in $ARGV[2]: $line\n  ",
+    print STDERR "Warning! Improperly formatted line in $ARGV[2]: $line\n  ",
       "Need chromName, chromStart, chromEnd, and ampliconName (tab-delimited)\n";
     next;
   }
@@ -126,10 +128,10 @@ foreach my $am (sort keys %seq) {
   foreach my $len (sort keys %{$seq{$am}}) {
 
     if (! exists $loc{$am}) {
-      print "Warning! Skipping $am -- no location info\n";
+      print STDERR "Warning! Skipping $am -- no location info\n";
       last;
     } elsif (! exists $targ{$am}) {
-      print "Warning! Skipping $am -- no sequences loaded\n";
+      print STDERR "Warning! Skipping $am -- no sequences loaded\n";
       last;
     }
 
@@ -145,7 +147,7 @@ foreach my $am (sort keys %seq) {
       my @spl = split(" ", $seq{$am}{$len}{$que[0]}); # $spl[0] is I/D, $spl[1] lists reads
       $spl[0] =~ m/(\d+)([ID])/;
       if (length $que[0] != ($2 eq 'I' ? $1 : -$1) + length $targ{$am}) {
-        print "Error! $am, $spl[0] does not match sequences:\n",
+        print STDERR "Error! $am, $spl[0] does not match sequences:\n",
           "seq  $que[0]\nref  $targ{$am}\n";
         delete $seq{$am}{$len}{$que[0]};
         next;
@@ -204,7 +206,8 @@ foreach my $am (sort keys %seq) {
     }
     printf LOG "consensus\t$max\t%.1f%%\t$best\n", 100*$max/$tot
       if (scalar @ARGV > 4);
-    print "Warning for $am, len=$len: $best not perfect\n" if ($max != $tot);
+    print STDERR "Warning for $am, len=$len: $best not perfect\n"
+      if ($max != $tot);
 
     # evaluate external in/del for artifacts (i.e. if primer is match)
     my $score = -1;
@@ -222,13 +225,14 @@ foreach my $am (sort keys %seq) {
       } elsif (scalar @ARGV > 5) {
         # external insertion: must query whole genome for segment
         my @div = split("\t", $loc{$am});
-        my $chr;
+        my $chr = "";
         local $/ = '>';
         my $waste = <GEN>;
         while (my $chunk = <GEN>) {
           chomp $chunk;
           my @spl = split("\n", $chunk);
-          my $ch = shift @spl;
+          my @head = split(" ", shift @spl);
+          my $ch = $head[0];
           if ($ch eq $div[0]) {
             $chr = join("", @spl);
             last;
@@ -236,16 +240,18 @@ foreach my $am (sort keys %seq) {
         }
         close GEN;
         open(GEN, $ARGV[5]) || die "Cannot open $ARGV[5]\n";
-        if ($three) {
-          $gen = reverse(substr($chr, $div[1] - 1 + $len, length $prim));
-        } else {
-          $best =~ m/^0M(\d+)I/;
-          $gen = substr($chr, $div[1] - 1 - $1 - length $prim, length $prim);
+        if ($chr) {
+          if ($three) {
+            $gen = reverse(substr($chr, $div[1] - 1 + $len, length $prim));
+          } else {
+            $best =~ m/^0M(\d+)I/;
+            $gen = substr($chr, $div[1] - 1 - $1 - length $prim, length $prim);
+          }
+          $gen =~ tr/a-z/A-Z/;
         }
-        $gen =~ tr/a-z/A-Z/;
       }
       if (!$gen) {
-        print "Warning! Cannot evaluate external in/del of $am, len=$len",
+        print STDERR "Warning! Cannot evaluate external in/del of $am, len=$len",
           "  (no reference sequence loaded)\n";
       } else {
         # score match of primer to genomic segment

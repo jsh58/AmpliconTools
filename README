@@ -20,7 +20,7 @@ parameters.  It requires that bowtie2 (2.2.3), samtools (0.1.19), and VarScan
 (2.3.7) be installed and available on the command-line (the path to the VarScan
 jar file must be set in the run.sh script).  It is run by the following command:
 
-   $ bash run.sh  <FASTQ1>  <FASTQ2>  <BED>  <GEN>  <IDX>  <DIR>
+   $ ./run.sh  <FASTQ1>  <FASTQ2>  <BED>  <GEN>  <IDX>  <DIR>
 
 where
 
@@ -34,6 +34,9 @@ where
 
 Choosing different parameters, or saving various intermediate files, can be
 accomplished by editing the run.sh script.
+
+Since output file names are specified in run.sh, one should not execute multiple
+instances in the same location.
 
 - John M. Gaspar (jmgaspar@gwu.edu)
   June 2015

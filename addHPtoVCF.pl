@@ -7,7 +7,7 @@
 #   adjacent to each variant.
 
 # Analyzes only 10bp on either side of variant --
-#   cf. lines 187-89, or <logfile> output.
+#   cf. lines 188-90, or <logfile> output.
 
 use strict;
 use warnings;
@@ -34,9 +34,9 @@ open(GEN, $ARGV[1]) || die "Cannot open $ARGV[1]\n";
 $/ = '>';
 my $waste = <GEN>;
 $/ = "\n";
-open(OUT, ">$ARGV[2]");
+open(OUT, ">$ARGV[2]") || die "Cannot open $ARGV[2] for writing\n";
 if (scalar @ARGV > 3) {
-  open(LOG, ">$ARGV[3]");
+  open(LOG, ">$ARGV[3]") || die "Cannot open $ARGV[3] for writing\n";
   print LOG "#CHROM\tPOS\tREF\tALT\tAF\tCIGAR\tGenomeSegment\tHP\n";
 }
 
@@ -62,7 +62,7 @@ while (my $line = <VCF>) {
   my @b1 = split(',', $spl[3]);
   my @b2 = split(',', $spl[4]);
   if (scalar @b1 > 1 || scalar @b2 > 1) {
-    print "Warning! Multiple variant alleles in VCF record:\n$line\n";
+    print STDERR "Warning! Multiple variant alleles in VCF record:\n$line\n";
     print OUT "$line\n";
     next;
   }
@@ -164,7 +164,8 @@ while (my $line = <VCF>) {
         while (my $chunk = <GEN>) {
           chomp $chunk;
           my @div = split("\n", $chunk);
-          my $ch = shift @div;
+          my @head = split(" ", shift @div);
+          my $ch = $head[0];
           if ($spl[0] eq $ch) {
             $seq = join("", @div);
             last;

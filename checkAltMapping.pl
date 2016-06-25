@@ -33,14 +33,14 @@ open(SAM, $ARGV[1]) || die "Cannot open $ARGV[1]\n";
 open(PR, $ARGV[2]) || die "Cannot open $ARGV[2]\n";
 open(BED, $ARGV[3]) || die "Cannot open $ARGV[3]\n";
 open(FA, $ARGV[4]) || die "Cannot open $ARGV[4]\n";
-open(OUT, ">$ARGV[5]");
+open(OUT, ">$ARGV[5]") || die "Cannot open $ARGV[5] for writing\n";
 my $pct = 0.75;
 if (scalar @ARGV > 6) {
   die "Minimum primer matching score must be in [0,1]\n"
     if ($ARGV[6] < 0 || $ARGV[6] > 1);
   $pct = $ARGV[6];
   if (scalar @ARGV > 7) {
-    open(LOG, ">$ARGV[7]");
+    open(LOG, ">$ARGV[7]") || die "Cannot open $ARGV[7] for writing\n";
     print LOG "Amplicon\tPrimersRemoved\tAltChr\tAltPos\tStrand\n";
   }
 }
@@ -65,15 +65,15 @@ while (my $line = <BED>) {
   chomp $line;
   my @spl = split("\t", $line);
   if (scalar @spl < 4) {
-    print "Warning! Improperly formatted line in $ARGV[3]: $line\n  ",
+    print STDERR "Warning! Improperly formatted line in $ARGV[3]: $line\n  ",
       "Need chromName, chromStart, chromEnd, and ampliconName (tab-delimited)\n";
     next;
   }
   if (exists $pos{$spl[3]}) {
     my @div = split("\t", $pos{$spl[3]});
     if ($div[0] ne $spl[0]) {
-      print "Warning: skipping amplicon $spl[3] -- ",
-        "located at chromosomes $spl[0] and $div[0]!?\n";
+      print STDERR "Warning! Skipping amplicon $spl[3] --\n",
+        "  located at chromosomes $spl[0] and $div[0]!?\n";
     } else {
       # 20bp wiggle room on either side
       $loc{$spl[3]} = ($spl[1] < $div[1] ?
@@ -94,8 +94,14 @@ my $waste = <FA>;
 while (my $chunk = <FA>) {
   chomp $chunk;
   my @spl = split("\n", $chunk);
-  my $ch = shift @spl;
-  $chr{$ch} = join("", @spl);
+  my @head = split(" ", shift @spl);
+  my $ch = $head[0];
+  if (exists $chr{$ch}) {
+    print STDERR "Warning! In reference genome $ARGV[4]\n",
+      "  Chromosome name $ch repeated\n";
+  } else {
+    $chr{$ch} = join("", @spl);
+  }
 }
 close FA;
 
@@ -130,7 +136,7 @@ while (my $line = <FQ>) {
     if ($id eq $am) {
       if (exists $amp{$que}) {
         if ($id ne $amp{$que}) {
-          print "Warning! Primers do not match for read $que\n";
+          print STDERR "Warning! Primers do not match for read $que\n";
           delete $amp{$que};
           last;
         }
@@ -155,7 +161,8 @@ while (my $line = <FQ>) {
   }
 
   if (! exists $amp{$que}) {
-    print "Warning! Skipping read $que -- no amplicon found\n";
+    print STDERR "Warning! Skipping read $que --\n",
+      "  no amplicon found\n";
     $line = <FQ>;
   } 
   $count++;
@@ -201,7 +208,8 @@ while ($line) {
 
   # load amplicon info for read
   if (! exists $amp{$spl[0]}) {
-    print "Warning: skipping read $spl[0] (no amplicon info)\n";
+    print STDERR "Warning! Skipping read $spl[0] --\n",
+      "  no amplicon info\n";
     while ($line = <SAM>) {
       my @div = split("\t", $line);
       last if (scalar @div < 11 || $div[0] ne $spl[0] ||
@@ -239,7 +247,7 @@ while ($line) {
       }
     }
     if (!@pr) {
-      print "Warning! No removed-primer info for read $div[0]\n";
+      print STDERR "Warning! No removed-primer info for read $div[0]\n";
       $line = <SAM>;
       next;
     }
@@ -267,7 +275,7 @@ while ($line) {
 
       # skip if no genomic segment loaded
       if (! exists $chr{$div[2]}) {
-        print "Warning! No sequence loaded for reference $div[2]\n";
+        print STDERR "Warning! No sequence loaded for reference $div[2]\n";
         $line = <SAM>;
         next;
       }

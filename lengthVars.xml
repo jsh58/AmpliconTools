@@ -1,4 +1,4 @@
-<tool id="lengthvars" name="Align length-variant reads">
+<tool id="lengthvars" name="Align length-variant reads" version="1.1">
   <description> to expected amplicon target sequences</description>
   <command>
     $__tool_directory__/findLengthVars.pl "$fastq" "$bed" temp0 "$pct" "$len";

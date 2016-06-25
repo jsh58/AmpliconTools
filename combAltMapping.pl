@@ -22,14 +22,14 @@ sub usage {
 
 usage() if (scalar @ARGV < 2 || $ARGV[0] eq "-h");
 
-open(OUT, ">$ARGV[0]");
+open(OUT, ">$ARGV[0]") || die "Cannot open $ARGV[0] for writing\n";
 
 # loop through folders
 my %tot;
 my $samp = 0;
 for (my $x = 1; $x < scalar @ARGV; $x++) {
   if ( ! open(IN, $ARGV[$x]) ) {
-    print "Error! Cannot open $ARGV[$x]\n";
+    print STDERR "Error! Cannot open $ARGV[$x]\n";
     next;
   }
   $samp++;

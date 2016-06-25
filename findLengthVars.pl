@@ -32,7 +32,7 @@ usage() if (scalar @ARGV < 3 || $ARGV[0] eq "-h");
 
 open(IN, $ARGV[0]) || die "Cannot open $ARGV[0]\n";
 open(BED, $ARGV[1]) || die "Cannot open $ARGV[1]\n";
-open(OUT, ">$ARGV[2]");
+open(OUT, ">$ARGV[2]") || die "Cannot open $ARGV[2] for writing\n";
 
 # load length parameters
 my $pct = 0.01;  # fraction of reads to consider
@@ -46,15 +46,15 @@ while (my $line = <BED>) {
   chomp $line;
   my @spl = split("\t", $line);
   if (scalar @spl < 4) {
-    print "Warning! Improperly formatted line in $ARGV[1]: $line\n  ",
+    print STDERR "Warning! Improperly formatted line in $ARGV[1]: $line\n  ",
       "Need chromName, chromStart, chromEnd, and ampliconName (tab-delimited)\n";
     next;
   }
   if (exists $pos{$spl[3]}) {
     my @div = split("\t", $pos{$spl[3]});
     if ($div[0] ne $spl[0]) {
-      print "Warning: skipping amplicon $spl[3] -- ",
-        "located at chromosomes $spl[0] and $div[0]!?\n";
+      print STDERR "Warning: skipping amplicon $spl[3] --\n",
+        "  located at chromosomes $spl[0] and $div[0]!?\n";
       delete $pos{$spl[3]};
     }
     if ($spl[1] < $div[1]) {
@@ -74,7 +74,7 @@ close BED;
 foreach my $k (keys %pos) {
   my @spl = split("\t", $pos{$k});
   if (scalar @spl < 4) {
-    print "Warning! Insufficient information in $ARGV[1] for amplicon $k\n";
+    print STDERR "Warning! Insufficient information in $ARGV[1] for amplicon $k\n";
     delete $pos{$k};
   } else {
     $pos{$k} = $spl[3];
@@ -102,7 +102,7 @@ while (my $line = <IN>) {
     "no amplicon ID in $line\n" if (!$id);
 
   if (! exists $pos{$id}) {
-    print "Warning! Skipping read $spl[0] with unknown amplicon $id\n";
+    print STDERR "Warning! Skipping read $spl[0] with unknown amplicon $id\n";
     for (my $x = 0; $x < 3; $x++) {
       $line = <IN>;
     }

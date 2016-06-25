@@ -122,15 +122,15 @@ for (my $x = 2; $x < scalar @ARGV; $x++) {
         chomp $line;
         my @spl = split("\t", $line);
         if (scalar @spl < 4) {
-          print "Warning! Improperly formatted line in $ARGV[$x]: $line\n  ",
+          print STDERR "Warning! Improperly formatted line in $ARGV[$x]: $line\n  ",
             "Need chromName, chromStart, chromEnd, and ampliconName (tab-delimited)\n";
           next;
         }
         if (exists $pos{$spl[3]}) {
           my @div = split("\t", $pos{$spl[3]});
           if ($div[0] ne $spl[0]) {
-            print "Warning! Skipping amplicon $spl[3] -- ",
-              "located at chromosomes $spl[0] and $div[0]!?\n";
+            print STDERR "Warning! Skipping amplicon $spl[3] --\n",
+              "  located at chromosomes $spl[0] and $div[0]!?\n";
           } else {
             my $st; my $end;
             if ($spl[1] < $div[1]) {
@@ -167,7 +167,7 @@ my $xAF = 0; my $xAO = 0; my $xDP = 0;
 my $xID = 0; my $xCT = 0; my $xBed = 0;
 my $xHP = 0;
 my $pr = 1;  # flag for header printing
-open(OUT, ">$ARGV[1]");
+open(OUT, ">$ARGV[1]") || die "Cannot open $ARGV[1] for writing\n";
 while (my $line = <IN>) {
   if (substr($line, 0, 1) eq '#') {
     if ($pr && substr($line, 0, 6) eq '##INFO'
@@ -195,7 +195,7 @@ while (my $line = <IN>) {
   my @b1 = split(',', $spl[3]);
   my @b2 = split(',', $spl[4]);
   if (scalar @b1 > 1 || scalar @b2 > 1) {
-    print "Warning! Multiple variant alleles in VCF record:\n$line\n";
+    print STDERR "Warning! Multiple variant alleles in VCF record:\n$line\n";
     print OUT "$line\n";
     $good++;
     next;

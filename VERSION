@@ -1,0 +1,13 @@
+AmpliconTools
+
+Version 1.1 - June 2016
+  * Updated scripts:
+      - Improved reference genome parsing
+      - Improved error messages
+
+  ** Many thanks to the anonymous reviewer
+     who recommended these improvements. **
+
+
+Version 1.0 - June 2015
+  * First public release on GitHub.

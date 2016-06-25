@@ -1,4 +1,4 @@
-<tool id="makevcf" name="Construct a VCF">
+<tool id="makevcf" name="Construct a VCF" version="1.1">
   <description> using outputs from VarScan</description>
   <command>
     $__tool_directory__/makeVCF.pl "$snp" "$ind" "$pil" temp0 "$qual" "$lab";

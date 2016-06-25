@@ -24,7 +24,7 @@ usage() if (scalar @ARGV < 3 || $ARGV[0] eq "-h");
 
 open(IN, $ARGV[0]) || die "Cannot open $ARGV[0]\n";
 open(AMP, $ARGV[1]) || die "Cannot open $ARGV[1]\n";
-open(OUT, ">$ARGV[2]");
+open(OUT, ">$ARGV[2]") || die "Cannot open $ARGV[2] for writing\n";
 
 # load length variants
 my %var;  # variants

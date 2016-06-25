@@ -31,7 +31,7 @@ usage() if (scalar @ARGV < 4 || $ARGV[0] eq "-h");
 open(SNP, $ARGV[0]) || die "Cannot open $ARGV[0]\n";
 open(IND, $ARGV[1]) || die "Cannot open $ARGV[1]\n";
 open(PIL, $ARGV[2]) || die "Cannot open $ARGV[2]\n";
-open(OUT, ">$ARGV[3]");
+open(OUT, ">$ARGV[3]") || die "Cannot open $ARGV[3] for writing\n";
 
 # minimum quality score
 my $minQual = 15;
@@ -56,8 +56,10 @@ print OUT q(##fileformat=VCFv4.2
 );
 print OUT "#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\t$samp\n";
 
-# save read depth at each position
+# save read depth at each position, and chromosome order
 my %dp;
+my %ord;  # for chromosome order
+my $idx = 0;
 while (my $line = <PIL>) {
   chomp $line;
   my @spl = split("\t", $line);
@@ -67,11 +69,18 @@ while (my $line = <PIL>) {
     $depth++ if (ord(substr($spl[5], $x, 1)) > $min);
   }
   $dp{$spl[0]}{$spl[1]} = $depth;
+
+  # save order
+  if (! exists $ord{$spl[0]}) {
+    $ord{$spl[0]} = $idx;
+    $idx++;
+  }
 }
 close PIL;
 
-# constant genotype for each alt. allele
-my $gt = "0/1";
+# append dummy chromosome
+my $dummy = "zzzzz";
+$ord{$dummy} = $idx;
 
 # skip headers
 my $waste = <SNP>;
@@ -83,13 +92,13 @@ my $iline = <IND>;
 if ($iline) {
   chomp $iline;
 } else {
-  $iline = "chr99\t999999999";
+  $iline = "$dummy\t999999999";
 }
 my $sline = <SNP>;
 if ($sline) {
   chomp $sline;
 } else {
-  $sline = "chr99\t999999999";
+  $sline = "$dummy\t999999999";
 }
 
 # print sorted output
@@ -97,30 +106,24 @@ while (1) {
 
   my @sar = split("\t", $sline);
   my @iar = split("\t", $iline);
-
-  my $schr = substr($sar[0], 3);
-  my $ichr = substr($iar[0], 3);
-  $schr = 0 if ($schr eq 'M');
-  $schr = 23 if ($schr eq 'X');
-  $schr = 24 if ($schr eq 'Y');
-  $ichr = 0 if ($ichr eq 'M');
-  $ichr = 23 if ($ichr eq 'X');
-  $ichr = 24 if ($ichr eq 'Y');
-  last if ($schr == 99 && $ichr == 99);
+  last if ($sar[0] eq $dummy && $iar[0] eq $dummy);
 
   # determine which is next
-  my $next = ($ichr < $schr ||
-    ($ichr == $schr && $iar[1] < $sar[1]) ? 1 : 0);
+  my $next = ($ord{$iar[0]} < $ord{$sar[0]} ||
+    ($iar[0] eq $sar[0] && $iar[1] < $sar[1]) ? 1 : 0);
 
   if ($next) {
     # in/del
     my @spl = split(/\//, $iar[3]);
     my $var = "";
+    my $gt = "1/1";
     for (my $x = 0; $x < scalar @spl; $x++) {
       if ($spl[$x] ne '*') {
         die "In/del alleles don't match for $iline\n"
           if ($var && $var ne $spl[$x]);
         $var = $spl[$x];
+      } else {
+        $gt = "0/1";
       }
     }
     die "Cannot figure out in/del variant in $iline\n"
@@ -159,7 +162,7 @@ while (1) {
 
     # print output
     my $af = int(1000000*$ao/$dep+0.5) / 1000000;
-    print OUT "$iar[0]\t$iar[1]\t.\t$ref\t$alt\t0\t.",
+    print OUT "$iar[0]\t$iar[1]\t.\t$ref\t$alt\t.\t.",
       "\tCIGAR=$cig;TYPE=$type",
       "\tGT:AF:AO:DP:RO\t$gt:$af:$ao:$dep:$ro\n";
 
@@ -168,20 +171,20 @@ while (1) {
     if ($iline) {
       chomp $iline;
     } else {
-      $iline = "chr99\t999999999";
+      $iline = "$dummy\t999999999";
     }
 
   } else {
-    # substitution -- assume single base (SNP)
+    # substitution -- assume single base
     my $ref = $sar[2];
-    die "Cannot resolve SNP in $sline\n" if (length $ref > 1);
-    my $alt = getAlt($sar[2], $sar[3]);
+    die "Cannot resolve SNV in $sline\n" if (length $ref > 1);
+    my ($alt, $gt) = getAlt($sar[2], $sar[3]);
     my $ao = $sar[5];
     my $ro = $sar[4];
     my $dep = $dp{$sar[0]}{$sar[1]};
     my $af = int(1000000*$ao/$dep+0.5) / 1000000;
     my $cig = "1X";
-    print OUT "$sar[0]\t$sar[1]\t.\t$ref\t$alt\t0\t.",
+    print OUT "$sar[0]\t$sar[1]\t.\t$ref\t$alt\t.\t.",
       "\tCIGAR=$cig;TYPE=sub",
       "\tGT:AF:AO:DP:RO\t$gt:$af:$ao:$dep:$ro\n";
 
@@ -190,7 +193,7 @@ while (1) {
     if ($sline) {
       chomp $sline;
     } else {
-      $sline = "chr99\t999999999";
+      $sline = "$dummy\t999999999";
     }
 
   }
@@ -205,8 +208,13 @@ sub getAlt {
   my $alt = $_[1];
   my $ret = "";
 
-  $ret = $alt if ($alt eq 'A' || $alt eq 'C' ||
-    $alt eq 'G' || $alt eq 'T');
+  my $gt = "0/1";
+  if ($alt eq 'A' || $alt eq 'C' ||
+      $alt eq 'G' || $alt eq 'T') {
+    $ret = $alt;
+    $gt = "1/1";
+  }
+
   if ($ref eq 'A') {
     if ($alt eq 'M') {
       $ret = 'C';
@@ -242,5 +250,5 @@ sub getAlt {
   }
   die "Cannot determine alt. allele for $ref, $alt\n"
     if (! $ret);
-  return $ret;
+  return $ret, $gt;
 }

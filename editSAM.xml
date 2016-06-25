@@ -1,4 +1,4 @@
-<tool id="editsam" name="Edit a SAM file">
+<tool id="editsam" name="Edit a SAM file" version="1.1">
   <description> of alternative mappings and length-variant realignments</description>
   <command>
     $__tool_directory__/checkAltMapping.pl "$fastq" "$sam" "$prim" "$bed" "$gen.fields.path" temp "$pct"

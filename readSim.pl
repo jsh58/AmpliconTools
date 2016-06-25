@@ -43,8 +43,8 @@ usage() if (scalar @ARGV < 5 || $ARGV[0] eq "-h");
 open(IP, $ARGV[0]) || die "Cannot open $ARGV[0]\n";
 open(PR, $ARGV[1]) || die "Cannot open $ARGV[1]\n";
 open(FA, $ARGV[2]) || die "Cannot open $ARGV[2]\n";
-open(FQ1, ">$ARGV[3]");
-open(FQ2, ">$ARGV[4]");
+open(FQ1, ">$ARGV[3]") || die "Cannot open $ARGV[3] for writing\n";
+open(FQ2, ">$ARGV[4]") || die "Cannot open $ARGV[4] for writing\n";
 
 # load optional parameters:
 
@@ -74,7 +74,7 @@ if (scalar @ARGV > 8) {
     $min = $spl[0];
     $max = $spl[1];
   } else {
-    print "Warning! Cannot load amplicon lengths $ARGV[8]\n",
+    print STDERR "Warning! Cannot load amplicon lengths $ARGV[8]\n",
       "Using defaults of $min,$max\n";
   }
   # make sure $min is less than $max
@@ -92,7 +92,7 @@ if (scalar @ARGV > 9 && open(BED, $ARGV[9])) {
     chomp $line;
     my @spl = split("\t", $line);
     if (scalar @spl < 4) {
-      print "Warning! Improperly formatted line in $ARGV[9]: $line\n  ",
+      print STDERR "Warning! Improperly formatted line in $ARGV[9]: $line\n  ",
         "Need chromName, chromStart, chromEnd, and ampliconName (tab-delimited)\n";
       next;
     }
@@ -128,7 +128,7 @@ if (scalar @ARGV > 10) {
   $per = (scalar @ARGV > 11 ? $ARGV[11] : 10);
 }
 
-# adapter sequences: reads from shorter amplicons may contain part of these sequences 
+# adapter sequences: reads from shorter amplicons may contain part of these sequences
 my $il1 = "AGACCAAGTCTCTGCTACCGTACTCTGGACGAATCTCGTATGCCGTCTTCTGCTTGAAAA";  # fwd reads
 my $il2 = "TGTAGAACCATGTCGTCAGTGTAGATCTCGGTGGTCGCCGTATCATTAAAAAAAAAAAAA";  # rev reads
 while (length $il1 < $len) {
@@ -156,8 +156,14 @@ my $waste = <FA>;
 while (my $chunk = <FA>) {
   chomp $chunk;
   my @spl = split("\n", $chunk);
-  my $ch = shift @spl;
-  $chr{$ch} = join("", @spl);
+  my @head = split(" ", shift @spl);
+  my $ch = $head[0];
+  if (exists $chr{$ch}) {
+    print STDERR "Warning! In reference genome $ARGV[2]:\n",
+      "  Chromosome name $ch repeated\n";
+  } else {
+    $chr{$ch} = join("", @spl);
+  }
 }
 close FA;
 
@@ -179,11 +185,11 @@ while (my $line = <IP>) {
   # skip if no genomic segment loaded or no primers loaded
   my @div = split(':', $spl[1]);
   if (! exists $chr{$div[0]}) {
-    print "Warning! No sequence loaded for reference $div[0]\n";
+    print STDERR "Warning! No sequence loaded for reference $div[0]\n";
     next;
   }
   if ((! exists $fwd{$spl[2]}) || (! exists $rev{$spl[2]})) {
-    print "Warning! No primers loaded for amplicon $spl[2]\n";
+    print STDERR "Warning! No primers loaded for amplicon $spl[2]\n";
     next;
   }
 
@@ -271,7 +277,7 @@ while (my $line = <IP>) {
     my @cut = split("\t", $vr{$pos});
     my $base = substr($varseq, $pos-$spl[5]-1, length $cut[0]);
     if ($base ne $cut[0]) {
-      print "Warning! Sequence $base does not match listed ",
+      print STDERR "Warning! Sequence $base does not match listed ",
         "variant $cut[0] > $cut[1] at $div[0], $pos\n";
     } else {
       substr($varseq, $pos-$spl[5]-1, length $cut[0], $cut[1]);

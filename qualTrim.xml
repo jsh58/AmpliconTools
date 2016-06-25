@@ -1,4 +1,4 @@
-<tool id="qualtrim" name="Quality filtering">
+<tool id="qualtrim" name="Quality filtering" version="1.1">
   <description> of reads based on quality scores and length</description>
   <command>
     qualTrim -i "$in" -o "$out" -l "$l" -q "$q" -t "$t" -n "$n"
