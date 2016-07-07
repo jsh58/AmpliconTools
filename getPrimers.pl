@@ -20,9 +20,10 @@ sub usage {
                    chr9   89011062    89011085    amplicon2
                  Two primers are required for each amplicon.
                  The chromosome names (first column) must match the
-                   first space-delimited token in the headers of the
-                   fasta reference genome.
-    <genome>   Fasta file of reference genome
+                   first space-delimited token in the headers of
+                   the fasta reference genome.
+    <genome>   Fasta file of reference genome (single file; may be
+                 gzip compressed, with ".gz" extension)
     <outfile>  Output file containing primer and target sequences
 );
   exit;
@@ -31,7 +32,12 @@ sub usage {
 usage() if (scalar @ARGV < 3 || $ARGV[0] eq "-h");
 
 open(BED, $ARGV[0]) || die "Cannot open $ARGV[0]\n";
-open(GEN, $ARGV[1]) || die "Cannot open $ARGV[1]\n";
+if (substr($ARGV[1], -3) eq ".gz") {
+  die "Cannot open $ARGV[1]\n" if (! -f $ARGV[1]);
+  open(GEN, "zcat $ARGV[1] |");
+} else {
+  open(GEN, $ARGV[1]) || die "Cannot open $ARGV[1]\n";
+}
 open(OUT, ">$ARGV[2]") || die "Cannot open $ARGV[2] for writing\n";
 
 # load primer locations: chr# - 5'Loc - 5'PLen - targLen - 3'PLen
