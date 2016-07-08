@@ -14,7 +14,8 @@ sub usage {
   Required:
     <infile1>  Output from ipcress (or filterIpc.pl)
     <infile2>  File listing primer sequences (input to ipcress)
-    <genome>   Fasta file of reference genome
+    <genome>   Fasta file of reference genome (single file; may be
+                 gzip compressed, with ".gz" extension)
     <output1>  Output file -- PE reads #1
     <output2>  Output file -- PE reads #2
   Optional:
@@ -22,7 +23,8 @@ sub usage {
                  others will be scaled (using <score> parameter) (def. 1000)
     <length>   Length of PE reads to create (def. 100)
     <score>    Minimum primer matching score (scale 0-1; def. 0.75)
-    <lengths>  Allowed amplicon lengths (e.g. 70,160 -> 70-160bp amplicons; def. 0,100000)
+    <lengths>  Allowed amplicon lengths (e.g. 70,160 -> 70-160bp amplicons;
+                 def. 0,100000)
     <infile3>  BED file giving expected amplicon locations --
                  alternative overlapping amplicons will be excluded
     <infile4>  File listing variants to make in the reads --
@@ -42,7 +44,12 @@ usage() if (scalar @ARGV < 5 || $ARGV[0] eq "-h");
 # open files
 open(IP, $ARGV[0]) || die "Cannot open $ARGV[0]\n";
 open(PR, $ARGV[1]) || die "Cannot open $ARGV[1]\n";
-open(FA, $ARGV[2]) || die "Cannot open $ARGV[2]\n";
+if (substr($ARGV[2], -3) eq ".gz") {
+  die "Cannot open $ARGV[2]\n" if (! -f $ARGV[2]);
+  open(FA, "zcat $ARGV[2] |");
+} else {
+  open(FA, $ARGV[2]) || die "Cannot open $ARGV[2]\n";
+}
 open(FQ1, ">$ARGV[3]") || die "Cannot open $ARGV[3] for writing\n";
 open(FQ2, ">$ARGV[4]") || die "Cannot open $ARGV[4] for writing\n";
 
@@ -74,7 +81,7 @@ if (scalar @ARGV > 8) {
     $min = $spl[0];
     $max = $spl[1];
   } else {
-    print STDERR "Warning! Cannot load amplicon lengths $ARGV[8]\n",
+    warn "Warning! Cannot load amplicon lengths $ARGV[8]\n",
       "Using defaults of $min,$max\n";
   }
   # make sure $min is less than $max
@@ -92,8 +99,8 @@ if (scalar @ARGV > 9 && open(BED, $ARGV[9])) {
     chomp $line;
     my @spl = split("\t", $line);
     if (scalar @spl < 4) {
-      print STDERR "Warning! Improperly formatted line in $ARGV[9]: $line\n  ",
-        "Need chromName, chromStart, chromEnd, and ampliconName (tab-delimited)\n";
+      warn "Warning! Improperly formatted line in $ARGV[9]: $line\n  ",
+        "Need chromName, start, end, and ampliconName (tab-delimited)\n";
       next;
     }
     if (exists $exp{$spl[3]}) {
@@ -159,7 +166,7 @@ while (my $chunk = <FA>) {
   my @head = split(" ", shift @spl);
   my $ch = $head[0];
   if (exists $chr{$ch}) {
-    print STDERR "Warning! In reference genome $ARGV[2]:\n",
+    warn "Warning! In reference genome $ARGV[2]:\n",
       "  Chromosome name $ch repeated\n";
   } else {
     $chr{$ch} = join("", @spl);
@@ -185,11 +192,11 @@ while (my $line = <IP>) {
   # skip if no genomic segment loaded or no primers loaded
   my @div = split(':', $spl[1]);
   if (! exists $chr{$div[0]}) {
-    print STDERR "Warning! No sequence loaded for reference $div[0]\n";
+    warn "Warning! No sequence loaded for reference $div[0]\n";
     next;
   }
   if ((! exists $fwd{$spl[2]}) || (! exists $rev{$spl[2]})) {
-    print STDERR "Warning! No primers loaded for amplicon $spl[2]\n";
+    warn "Warning! No primers loaded for amplicon $spl[2]\n";
     next;
   }
 
@@ -277,7 +284,7 @@ while (my $line = <IP>) {
     my @cut = split("\t", $vr{$pos});
     my $base = substr($varseq, $pos-$spl[5]-1, length $cut[0]);
     if ($base ne $cut[0]) {
-      print STDERR "Warning! Sequence $base does not match listed ",
+      warn "Warning! Sequence $base does not match listed ",
         "variant $cut[0] > $cut[1] at $div[0], $pos\n";
     } else {
       substr($varseq, $pos-$spl[5]-1, length $cut[0], $cut[1]);

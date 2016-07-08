@@ -47,14 +47,14 @@ while (my $line = <BED>) {
   chomp $line;
   my @spl = split("\t", $line);
   if (scalar @spl < 4) {
-    print STDERR "Warning! Improperly formatted line in $ARGV[0]: $line\n  ",
-      "Need chromName, chromStart, chromEnd, and ampliconName (tab-delimited)\n";
+    warn "Warning! Improperly formatted line in $ARGV[0]: $line\n  ",
+      "Need chromName, start, end, and ampliconName (tab-delimited)\n";
     next;
   }
   if (exists $pos{$spl[3]}) {
     my @div = split("\t", $pos{$spl[3]});
     if ($div[0] ne $spl[0]) {
-      print STDERR "Warning! Skipping amplicon $spl[3] --\n",
+      warn "Warning! Skipping amplicon $spl[3] --\n",
         "  located at chromosomes $spl[0] and $div[0]!?\n";
       delete $pos{$spl[3]};
     } elsif ($spl[1] < $div[1]) {
@@ -77,7 +77,7 @@ my %loc;
 foreach my $amp (keys %pos) {
   my @spl = split("\t", $pos{$amp});
   if (scalar @spl < 5) {
-    print STDERR "Warning! Skipping amplicon $amp --\n",
+    warn "Warning! Skipping amplicon $amp --\n",
       "  Not enough info in BED file\n";
     next;
   }
@@ -103,7 +103,7 @@ while (my $chunk = <GEN>) {
   foreach my $amp (sort keys %{$loc{$ch}}) {
     my @div = split("\t", $loc{$ch}{$amp});
     if ($div[0] + $div[1] + $div[2] + $div[3] > length $chr) {
-      print STDERR "Warning! Skipping amplicon $amp --\n",
+      warn "Warning! Skipping amplicon $amp --\n",
         "  Outside bounds of chromosome $ch\n";
       next;
     }
@@ -120,7 +120,7 @@ close GEN;
 close OUT;
 
 if ($total < $count) {
-  print STDERR "Warning! Could not find all amplicons\n",
+  warn "Warning! Could not find all amplicons\n",
     "  Amplicons specified: $count\n",
     "  Sequences found: $total\n";
 }

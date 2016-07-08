@@ -42,14 +42,14 @@ while (my $line = <BED>) {
   chomp $line;
   my @spl = split("\t", $line);
   if (scalar @spl < 4) {
-    print "Improperly formatted line in BED file: $line\n",
-      "Need chromName, chromStart, chromEnd, and ampliconName (tab-delimited)\n";
+    warn "Warning! Improperly formatted line in BED file: $line\n",
+      "Need chromName, start, end, and ampliconName (tab-delimited)\n";
     next;
   }
   if (exists $pos{$spl[3]}) {
     my @div = split("\t", $pos{$spl[3]});
     if ($div[0] ne $spl[0]) {
-      print "Warning: skipping amplicon $spl[3] -- ",
+      warn "Warning! Skipping amplicon $spl[3] -- ",
         "located at chromosomes $spl[0] and $div[0]!?\n";
     } else {
       # 100bp wiggle room on either side
