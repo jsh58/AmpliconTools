@@ -7,6 +7,7 @@
 
 #define MAX_SIZE    1024   // maximum length for input line
 #define OFFSET      33     // ASCII-based offset of quality scores
+#define GZEXT       ".gz"  // file extension for gzip compression
 
 // command-line parameters
 #define HELP        "-h"
@@ -38,3 +39,8 @@
 #define ERRINT      7
 #define MERRINT     ": cannot convert to int"
 #define DEFERR      "Unknown error"
+
+union File {
+  FILE* f;
+  gzFile gzf;
+};

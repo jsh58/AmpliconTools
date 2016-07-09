@@ -2,12 +2,13 @@
   John Gaspar
   July 2014
 
-  Quality trimming a fastq file at the ends.
+  Quality trimming a fastq file.
 */
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <zlib.h>
 #include "qualTrim.h"
 
 /* void usage()
@@ -17,9 +18,11 @@ void usage(void) {
   fprintf(stderr, "Usage: ./qualTrim {%s <file> ", INFILE);
   fprintf(stderr, "%s <file>} [optional parameters]\n", OUTFILE);
   fprintf(stderr, "Required parameters:\n");
-  fprintf(stderr, "  %s <file>   Input FASTQ file with Sanger-scale\n", INFILE);
-  fprintf(stderr, "                quality scores (phred+33)\n");
-  fprintf(stderr, "  %s <file>   Output FASTQ file\n", OUTFILE);
+  fprintf(stderr, "  %s <file>   Input FASTQ file with Sanger-scale quality\n", INFILE);
+  fprintf(stderr, "                scores (phred + 33). Can be gzip compressed,\n");
+  fprintf(stderr, "                with \"%s\" extension\n", GZEXT);
+  fprintf(stderr, "  %s <file>   Output FASTQ file (will be gzip compressed if\n", OUTFILE);
+  fprintf(stderr, "                input is)\n");
   fprintf(stderr, "Optional parameters:\n");
   fprintf(stderr, "  %s <int>    Window length\n", WINDOWLEN);
   fprintf(stderr, "  %s <float>  Minimum avg. quality in the window\n", WINDOWAVG);
@@ -167,25 +170,47 @@ int checkQual(char* line, int st, int end, float avg) {
   return sum / (end - st) < avg ? 1 : 0;
 }
 
+/* void printOut()
+ * Print the given string to a file.
+ */
+void printOut(union File out, const char* format,
+    char* str, int gz) {
+  if (gz)
+    gzprintf(out.gzf, format, str);
+  else
+    fprintf(out.f, format, str);
+}
+
+/* char* getLine()
+ * Reads the next line from a file.
+ */
+char* getLine(char* line, int size, union File in, int gz) {
+  if (gz)
+    return gzgets(in.gzf, line, size);
+  else
+    return fgets(line, size, in.f);
+}
+
 /* void readFile()
  * Control the I/O.
  */
-void readFile(FILE* in, FILE* out, int len, float qual,
-    float avg, int minLen, int opt5, int opt3, int verbose) {
+void readFile(union File in, union File out, int len,
+    float qual, float avg, int minLen, int opt5, int opt3,
+    int gz, int verbose) {
   char* head = (char*) memalloc(MAX_SIZE);
   char* seq = (char*) memalloc(MAX_SIZE);
   char* line = (char*) memalloc(MAX_SIZE);
 
   int count = 0, elim = 0;
-  while (fgets(head, MAX_SIZE, in) != NULL) {
+  while (getLine(head, MAX_SIZE, in, gz) != NULL) {
     if (head[0] != '@')
       continue;
 
     // load sequence and quality scores
-    if (fgets(seq, MAX_SIZE, in) == NULL)
+    if (getLine(seq, MAX_SIZE, in, gz) == NULL)
       exit(error("", ERRSEQ));
     for (int i = 0; i < 2; i++)
-      if (fgets(line, MAX_SIZE, in) == NULL)
+      if (getLine(line, MAX_SIZE, in, gz) == NULL)
         exit(error("", ERRSEQ));
     int end = strlen(line) - 1;
     if (line[end] == '\n')
@@ -206,13 +231,13 @@ void readFile(FILE* in, FILE* out, int len, float qual,
 
     // print output
     if (st < end && end - st >= minLen) {
-      fprintf(out, "%s", head);
+      printOut(out, "%s", head, gz);
       for (int i = st; i < end; i++)
-        fprintf(out, "%c", seq[i]);
-      fprintf(out, "\n+\n");
+        gz ? gzputc(out.gzf, seq[i]) : putc(seq[i], out.f);
+      printOut(out, "\n+\n", NULL, gz);
       for (int i = st; i < end; i++)
-        fprintf(out, "%c", line[i]);
-      fprintf(out, "\n");
+        gz ? gzputc(out.gzf, line[i]) : putc(line[i], out.f);
+      printOut(out, "\n", NULL, gz);
       count++;
     } else
       elim++;
@@ -227,25 +252,46 @@ void readFile(FILE* in, FILE* out, int len, float qual,
   free(head);
 }
 
-/* FILE* openWrite()
+/* void openWrite()
  * Open a file for writing.
  */
-FILE* openWrite(char* outFile) {
-  FILE* out = fopen(outFile, "w");
-  if (out == NULL)
-    exit(error(outFile, ERROPENW));
-  return out;
+void openWrite(char* outFile, union File* out, int gz) {
+  if (gz) {
+    if (!strcmp(outFile + strlen(outFile) - strlen(GZEXT), GZEXT))
+      out->gzf = gzopen(outFile, "w");
+    else {
+      // add ".gz" to outFile
+      char* outFile2 = memalloc(strlen(outFile) +
+        strlen(GZEXT) + 1);
+      strcpy(outFile2, outFile);
+      strcat(outFile2, GZEXT);
+      out->gzf = gzopen(outFile2, "w");
+      free(outFile2);
+    }
+    if (out->gzf == NULL)
+      exit(error(outFile, ERROPENW));
+  } else {
+    out->f = fopen(outFile, "w");
+    if (out->f == NULL)
+      exit(error(outFile, ERROPENW));
+  }
 }
 
 /* void openFiles()
  * Open input and output files.
  */
-void openFiles(char* outFile, FILE** out,
-    char* inFile, FILE** in) {
-  *in = fopen(inFile, "r");
-  if (*in == NULL)
-    exit(error(inFile, ERROPEN));
-  *out = openWrite(outFile);
+void openFiles(char* outFile, union File* out,
+    char* inFile, union File* in, int gz) {
+  if (gz) {
+    in->gzf = gzopen(inFile, "r");
+    if (in->gzf == NULL)
+      exit(error(inFile, ERROPEN));
+  } else {
+    in->f = fopen(inFile, "r");
+    if (in->f == NULL)
+      exit(error(inFile, ERROPEN));
+  }
+  openWrite(outFile, out, gz);
 }
 
 /* void getParams()
@@ -290,12 +336,17 @@ void getParams(int argc, char** argv) {
   if (outFile == NULL || inFile == NULL)
     usage();
 
-  FILE* out = NULL, *in = NULL;
-  openFiles(outFile, &out, inFile, &in);
+  // process file
+  union File out, in;
+  int gz = 0;
+  if (!strcmp(inFile + strlen(inFile) - strlen(GZEXT), GZEXT))
+    gz = 1;
+  openFiles(outFile, &out, inFile, &in, gz);
   readFile(in, out, windowLen, windowAvg, qualAvg,
-    minLen, opt5, opt3, verbose);
+    minLen, opt5, opt3, gz, verbose);
 
-  if (fclose(out) || fclose(in))
+  if ( (gz && (gzclose(in.gzf) != Z_OK || gzclose(out.gzf) != Z_OK))
+      || ( ! gz && (fclose(in.f) || fclose(out.f))) )
     exit(error("", ERRCLOSE));
 }
 
