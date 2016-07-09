@@ -9,7 +9,7 @@ use strict;
 use warnings;
 
 sub usage {
-  print q(Usage: perl alignLengthVars.pl  <infile1>  <infile2>  <infile3>  <outfile>
+  print q(Usage: perl alignLengthVars.pl  <infile1>  <infile2>  <infile3>  <outfile> \
                         <logfile>  <genome>
   Required:
     <infile1>  File containing length-variant reads without primers attached
@@ -20,6 +20,7 @@ sub usage {
   Optional:
     <logfile>  Verbose output file listing possible CIGARs and scores for each read
     <genome>   Fasta file of reference genome (to evaluate external insertions)
+                 (single file; may be gzip compressed, with ".gz" extension)
 );
   exit;
 }
@@ -35,7 +36,12 @@ if (scalar @ARGV > 4) {
   open(LOG, ">$ARGV[4]") || die "Cannot open $ARGV[4] for writing\n"
 }
 if (scalar @ARGV > 5) {
-  open(GEN, $ARGV[5]) || die "Cannot open $ARGV[5]\n";
+  if (substr($ARGV[5], -3) eq ".gz") {
+    die "Cannot open $ARGV[5]\n" if (! -f $ARGV[5]);
+    open(GEN, "zcat $ARGV[5] |");
+  } else {
+    open(GEN, $ARGV[5]) || die "Cannot open $ARGV[5]\n";
+  }
 }
 
 # load primer and target sequences
@@ -58,8 +64,8 @@ while (my $line = <BED>) {
   chomp $line;
   my @spl = split("\t", $line);
   if (scalar @spl < 4) {
-    print STDERR "Warning! Improperly formatted line in $ARGV[2]: $line\n  ",
-      "Need chromName, chromStart, chromEnd, and ampliconName (tab-delimited)\n";
+    warn "Warning! Improperly formatted line in $ARGV[2]: $line\n  ",
+      "Need chromName, start, end, and ampliconName (tab-delimited)\n";
     next;
   }
   if (exists $loc{$spl[3]}) {
@@ -128,10 +134,10 @@ foreach my $am (sort keys %seq) {
   foreach my $len (sort keys %{$seq{$am}}) {
 
     if (! exists $loc{$am}) {
-      print STDERR "Warning! Skipping $am -- no location info\n";
+      warn "Warning! Skipping $am -- no location info\n";
       last;
     } elsif (! exists $targ{$am}) {
-      print STDERR "Warning! Skipping $am -- no sequences loaded\n";
+      warn "Warning! Skipping $am -- no sequences loaded\n";
       last;
     }
 
@@ -147,7 +153,7 @@ foreach my $am (sort keys %seq) {
       my @spl = split(" ", $seq{$am}{$len}{$que[0]}); # $spl[0] is I/D, $spl[1] lists reads
       $spl[0] =~ m/(\d+)([ID])/;
       if (length $que[0] != ($2 eq 'I' ? $1 : -$1) + length $targ{$am}) {
-        print STDERR "Error! $am, $spl[0] does not match sequences:\n",
+        warn "Error! $am, $spl[0] does not match sequences:\n",
           "seq  $que[0]\nref  $targ{$am}\n";
         delete $seq{$am}{$len}{$que[0]};
         next;
@@ -206,7 +212,7 @@ foreach my $am (sort keys %seq) {
     }
     printf LOG "consensus\t$max\t%.1f%%\t$best\n", 100*$max/$tot
       if (scalar @ARGV > 4);
-    print STDERR "Warning for $am, len=$len: $best not perfect\n"
+    warn "Warning for $am, len=$len: $best not perfect\n"
       if ($max != $tot);
 
     # evaluate external in/del for artifacts (i.e. if primer is match)
@@ -251,7 +257,7 @@ foreach my $am (sort keys %seq) {
         }
       }
       if (!$gen) {
-        print STDERR "Warning! Cannot evaluate external in/del of $am, len=$len",
+        warn "Warning! Cannot evaluate external in/del of $am, len=$len",
           "  (no reference sequence loaded)\n";
       } else {
         # score match of primer to genomic segment

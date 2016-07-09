@@ -15,9 +15,10 @@ use warnings;
 sub usage {
   print q(Usage: perl addHPtoVCF.pl  <infile>  <genome>  <outfile>  [<logfile>]
   Required:
-    <infile>   Input VCF file -- should list one variant
-                 per line, with INFO field "CIGAR"
-    <genome>   Fasta file of reference genome
+    <infile>   Input VCF file -- should list one variant per
+                 line, with INFO field "CIGAR"
+    <genome>   Fasta file of reference genome (single file; may be
+                 gzip compressed, with ".gz" extension)
     <outfile>  Output VCF file
   Optional:
     <logfile>  Verbose log file (if selected, input VCF
@@ -30,7 +31,12 @@ usage() if (scalar @ARGV < 3 || $ARGV[0] eq "-h");
 
 # open files
 open(VCF, $ARGV[0]) || die "Cannot open $ARGV[0]\n";
-open(GEN, $ARGV[1]) || die "Cannot open $ARGV[1]\n";
+if (substr($ARGV[1], -3) eq ".gz") {
+  die "Cannot open $ARGV[1]\n" if (! -f $ARGV[1]);
+  open(GEN, "zcat $ARGV[1] |");
+} else {
+  open(GEN, $ARGV[1]) || die "Cannot open $ARGV[1]\n";
+}
 $/ = '>';
 my $waste = <GEN>;
 $/ = "\n";
@@ -62,7 +68,7 @@ while (my $line = <VCF>) {
   my @b1 = split(',', $spl[3]);
   my @b2 = split(',', $spl[4]);
   if (scalar @b1 > 1 || scalar @b2 > 1) {
-    print STDERR "Warning! Multiple variant alleles in VCF record:\n$line\n";
+    warn "Warning! Multiple variant alleles in VCF record:\n$line\n";
     print OUT "$line\n";
     next;
   }
@@ -174,7 +180,11 @@ while (my $line = <VCF>) {
         if (! $seq) {
           # if not found, try again
           close GEN;
-          open(GEN, $ARGV[1]) || die "Cannot open $ARGV[1]\n";
+          if (substr($ARGV[1], -3) eq ".gz") {
+            open(GEN, "zcat $ARGV[1] |");
+          } else {
+            open(GEN, $ARGV[1]);
+          }
           my $waste = <GEN>;
         } else {
           last;

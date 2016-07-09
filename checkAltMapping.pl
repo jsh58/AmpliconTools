@@ -17,7 +17,8 @@ sub usage {
     <infile2>  SAM file containing mapping information
     <infile3>  File listing primer and target sequences (produced by getPrimers.pl)
     <infile4>  BED file listing locations of primers
-    <genome>   Fasta file of reference genome
+    <genome>   Fasta file of reference genome (single file; may be
+                 gzip compressed, with ".gz" extension)
     <outfile>  Output file listing match judgments
   Optional:
     <score>    Minimum primer matching score (scale 0-1; def. 0.75)
@@ -32,7 +33,12 @@ open(FQ, $ARGV[0]) || die "Cannot open $ARGV[0]\n";
 open(SAM, $ARGV[1]) || die "Cannot open $ARGV[1]\n";
 open(PR, $ARGV[2]) || die "Cannot open $ARGV[2]\n";
 open(BED, $ARGV[3]) || die "Cannot open $ARGV[3]\n";
-open(FA, $ARGV[4]) || die "Cannot open $ARGV[4]\n";
+if (substr($ARGV[4], -3) eq ".gz") {
+  die "Cannot open $ARGV[4]\n" if (! -f $ARGV[4]);
+  open(GEN, "zcat $ARGV[4] |");
+} else {
+  open(GEN, $ARGV[4]) || die "Cannot open $ARGV[4]\n";
+}
 open(OUT, ">$ARGV[5]") || die "Cannot open $ARGV[5] for writing\n";
 my $pct = 0.75;
 if (scalar @ARGV > 6) {
@@ -65,14 +71,14 @@ while (my $line = <BED>) {
   chomp $line;
   my @spl = split("\t", $line);
   if (scalar @spl < 4) {
-    print STDERR "Warning! Improperly formatted line in $ARGV[3]: $line\n  ",
-      "Need chromName, chromStart, chromEnd, and ampliconName (tab-delimited)\n";
+    warn "Warning! Improperly formatted line in $ARGV[3]: $line\n  ",
+      "Need chromName, start, end, and ampliconName (tab-delimited)\n";
     next;
   }
   if (exists $pos{$spl[3]}) {
     my @div = split("\t", $pos{$spl[3]});
     if ($div[0] ne $spl[0]) {
-      print STDERR "Warning! Skipping amplicon $spl[3] --\n",
+      warn "Warning! Skipping amplicon $spl[3] --\n",
         "  located at chromosomes $spl[0] and $div[0]!?\n";
     } else {
       # 20bp wiggle room on either side
@@ -90,20 +96,20 @@ close BED;
 # load genome
 my %chr;
 $/ = '>';
-my $waste = <FA>;
-while (my $chunk = <FA>) {
+my $waste = <GEN>;
+while (my $chunk = <GEN>) {
   chomp $chunk;
   my @spl = split("\n", $chunk);
   my @head = split(" ", shift @spl);
   my $ch = $head[0];
   if (exists $chr{$ch}) {
-    print STDERR "Warning! In reference genome $ARGV[4]\n",
+    warn "Warning! In reference genome $ARGV[4]\n",
       "  Chromosome name $ch repeated\n";
   } else {
     $chr{$ch} = join("", @spl);
   }
 }
-close FA;
+close GEN;
 
 # load amplicon info for reads from fastq
 my %amp;  # saves amplicon
@@ -136,7 +142,7 @@ while (my $line = <FQ>) {
     if ($id eq $am) {
       if (exists $amp{$que}) {
         if ($id ne $amp{$que}) {
-          print STDERR "Warning! Primers do not match for read $que\n";
+          warn "Warning! Primers do not match for read $que\n";
           delete $amp{$que};
           last;
         }
@@ -161,10 +167,10 @@ while (my $line = <FQ>) {
   }
 
   if (! exists $amp{$que}) {
-    print STDERR "Warning! Skipping read $que --\n",
+    warn "Warning! Skipping read $que --\n",
       "  no amplicon found\n";
     $line = <FQ>;
-  } 
+  }
   $count++;
   for (my $x = 0; $x < 2; $x++) {
     $line = <FQ>;
@@ -208,7 +214,7 @@ while ($line) {
 
   # load amplicon info for read
   if (! exists $amp{$spl[0]}) {
-    print STDERR "Warning! Skipping read $spl[0] --\n",
+    warn "Warning! Skipping read $spl[0] --\n",
       "  no amplicon info\n";
     while ($line = <SAM>) {
       my @div = split("\t", $line);
@@ -247,7 +253,7 @@ while ($line) {
       }
     }
     if (!@pr) {
-      print STDERR "Warning! No removed-primer info for read $div[0]\n";
+      warn "Warning! No removed-primer info for read $div[0]\n";
       $line = <SAM>;
       next;
     }
@@ -275,7 +281,7 @@ while ($line) {
 
       # skip if no genomic segment loaded
       if (! exists $chr{$div[2]}) {
-        print STDERR "Warning! No sequence loaded for reference $div[2]\n";
+        warn "Warning! No sequence loaded for reference $div[2]\n";
         $line = <SAM>;
         next;
       }

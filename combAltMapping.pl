@@ -29,7 +29,7 @@ my %tot;
 my $samp = 0;
 for (my $x = 1; $x < scalar @ARGV; $x++) {
   if ( ! open(IN, $ARGV[$x]) ) {
-    print STDERR "Error! Cannot open $ARGV[$x]\n";
+    warn "Error! Cannot open $ARGV[$x]\n";
     next;
   }
   $samp++;
