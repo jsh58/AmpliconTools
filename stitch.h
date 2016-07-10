@@ -62,7 +62,7 @@
 #define MERRMISM    "Mismatch must be in [0,1)"
 #define DEFERR      "Unknown error"
 
-union File {
+typedef union file {
   FILE* f;
   gzFile gzf;
-};
+} File;

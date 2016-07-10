@@ -40,7 +40,7 @@
 #define MERRINT     ": cannot convert to int"
 #define DEFERR      "Unknown error"
 
-union File {
+typedef union file {
   FILE* f;
   gzFile gzf;
-};
+} File;

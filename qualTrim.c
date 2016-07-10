@@ -19,7 +19,7 @@ void usage(void) {
   fprintf(stderr, "%s <file>} [optional parameters]\n", OUTFILE);
   fprintf(stderr, "Required parameters:\n");
   fprintf(stderr, "  %s <file>   Input FASTQ file with Sanger-scale quality\n", INFILE);
-  fprintf(stderr, "                scores (phred + 33). Can be gzip compressed,\n");
+  fprintf(stderr, "                scores (phred + 33); can be gzip compressed,\n");
   fprintf(stderr, "                with \"%s\" extension\n", GZEXT);
   fprintf(stderr, "  %s <file>   Output FASTQ file (will be gzip compressed if\n", OUTFILE);
   fprintf(stderr, "                input is)\n");
@@ -170,21 +170,10 @@ int checkQual(char* line, int st, int end, float avg) {
   return sum / (end - st) < avg ? 1 : 0;
 }
 
-/* void printOut()
- * Print the given string to a file.
- */
-void printOut(union File out, const char* format,
-    char* str, int gz) {
-  if (gz)
-    gzprintf(out.gzf, format, str);
-  else
-    fprintf(out.f, format, str);
-}
-
 /* char* getLine()
  * Reads the next line from a file.
  */
-char* getLine(char* line, int size, union File in, int gz) {
+char* getLine(char* line, int size, File in, int gz) {
   if (gz)
     return gzgets(in.gzf, line, size);
   else
@@ -194,8 +183,8 @@ char* getLine(char* line, int size, union File in, int gz) {
 /* void readFile()
  * Control the I/O.
  */
-void readFile(union File in, union File out, int len,
-    float qual, float avg, int minLen, int opt5, int opt3,
+void readFile(File in, File out, int len, float qual,
+    float avg, int minLen, int opt5, int opt3,
     int gz, int verbose) {
   char* head = (char*) memalloc(MAX_SIZE);
   char* seq = (char*) memalloc(MAX_SIZE);
@@ -231,13 +220,16 @@ void readFile(union File in, union File out, int len,
 
     // print output
     if (st < end && end - st >= minLen) {
-      printOut(out, "%s", head, gz);
+      gz ? gzprintf(out.gzf, "%s", head)
+        : fprintf(out.f, "%s", head);
       for (int i = st; i < end; i++)
         gz ? gzputc(out.gzf, seq[i]) : putc(seq[i], out.f);
-      printOut(out, "\n+\n", NULL, gz);
+      gz ? gzprintf(out.gzf, "\n+\n")
+        : fprintf(out.f, "\n+\n");
       for (int i = st; i < end; i++)
         gz ? gzputc(out.gzf, line[i]) : putc(line[i], out.f);
-      printOut(out, "\n", NULL, gz);
+      gz ? gzprintf(out.gzf, "\n")
+        : fprintf(out.f, "\n");
       count++;
     } else
       elim++;
@@ -255,7 +247,7 @@ void readFile(union File in, union File out, int len,
 /* void openWrite()
  * Open a file for writing.
  */
-void openWrite(char* outFile, union File* out, int gz) {
+void openWrite(char* outFile, File* out, int gz) {
   if (gz) {
     if (!strcmp(outFile + strlen(outFile) - strlen(GZEXT), GZEXT))
       out->gzf = gzopen(outFile, "w");
@@ -280,8 +272,8 @@ void openWrite(char* outFile, union File* out, int gz) {
 /* void openFiles()
  * Open input and output files.
  */
-void openFiles(char* outFile, union File* out,
-    char* inFile, union File* in, int gz) {
+void openFiles(char* outFile, File* out,
+    char* inFile, File* in, int gz) {
   if (gz) {
     in->gzf = gzopen(inFile, "r");
     if (in->gzf == NULL)
@@ -337,7 +329,7 @@ void getParams(int argc, char** argv) {
     usage();
 
   // process file
-  union File out, in;
+  File out, in;
   int gz = 0;
   if (!strcmp(inFile + strlen(inFile) - strlen(GZEXT), GZEXT))
     gz = 1;

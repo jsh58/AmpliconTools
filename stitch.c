@@ -118,7 +118,7 @@ char rc(char in) {
 /* char* getLine()
  * Reads the next line from a file.
  */
-char* getLine(char* line, int size, union File in, int gz) {
+char* getLine(char* line, int size, File in, int gz) {
   if (gz)
     return gzgets(in.gzf, line, size);
   else
@@ -146,8 +146,8 @@ void copyStr(char* out, char* in, int rev) {
 /* int getSeq()
  * Read sequence and quality scores from a fastq file.
  */
-int getSeq(union File in, char* line, char* seq,
-    char* qual, int nSeq, int nQual, int gz) {
+int getSeq(File in, char* line, char* seq, char* qual,
+    int nSeq, int nQual, int gz) {
   for (int i = 0; i < 3; i++) {
     if (getLine(line, MAX_SIZE, in, gz) == NULL)
       exit(error("", ERRSEQ));
@@ -246,9 +246,9 @@ void createSeq(char* seq1, char* seq2, char* qual1, char* qual2,
 /* void printRes()
  * Print stitched read.
  */
-void printRes(union File out, union File log, int logOpt,
-    union File dove, int doveOpt, char* header, char* seq1,
-    char* seq2, char* qual1, char* qual2, int len1, int len2,
+void printRes(File out, File log, int logOpt, File dove,
+    int doveOpt, char* header, char* seq1, char* seq2,
+    char* qual1, char* qual2, int len1, int len2,
     int pos, float best, int gz) {
   // log result
   if (logOpt) {
@@ -280,8 +280,8 @@ void printRes(union File out, union File log, int logOpt,
 /* void printFail()
  * Print stitch failure reads.
  */
-void printFail(union File un1, union File un2, int unOpt,
-    union File log, int logOpt, char* header, char* head1,
+void printFail(File un1, File un2, int unOpt,
+    File log, int logOpt, char* header, char* head1,
     char* head2, char* seq1, char* seq2, char* qual1,
     char* qual2, int len, int gz) {
   if (logOpt)
@@ -304,9 +304,9 @@ void printFail(union File un1, union File un2, int unOpt,
 /* int readFile()
  * Parses the input file. Produces the output file(s).
  */
-int readFile(union File in1, union File in2, union File out,
-    union File un1, union File un2, int unOpt, union File log,
-    int logOpt, int overlap, int dovetail, union File dove,
+int readFile(File in1, File in2, File out,
+    File un1, File un2, int unOpt, File log,
+    int logOpt, int overlap, int dovetail, File dove,
     int doveOpt, float mismatch, int maxLen, int* stitch,
     int* fail, int gz) {
 
@@ -386,7 +386,7 @@ int readFile(union File in1, union File in2, union File out,
 /* void openWrite()
  * Open a file for writing.
  */
-void openWrite(char* outFile, union File* out, int gz) {
+void openWrite(char* outFile, File* out, int gz) {
   if (gz) {
     if (!strcmp(outFile + strlen(outFile) - strlen(GZEXT), GZEXT))
       out->gzf = gzopen(outFile, "w");
@@ -411,7 +411,7 @@ void openWrite(char* outFile, union File* out, int gz) {
 /* void openRead()
  * Open a file for reading.
  */
-void openRead(char* inFile, union File* in, int gz) {
+void openRead(char* inFile, File* in, int gz) {
   if (gz) {
     in->gzf = gzopen(inFile, "r");
     if (in->gzf == NULL)
@@ -426,11 +426,11 @@ void openRead(char* inFile, union File* in, int gz) {
 /* void openFiles()
  * Opens the files to run the program.
  */
-void openFiles(char* outFile, union File* out,
-    char* inFile1, union File* in1, char* inFile2,
-    union File* in2, char* unFile1, union File* un1,
-    char* unFile2, union File* un2, char* logFile,
-    union File* log, char* doveFile, union File* dove,
+void openFiles(char* outFile, File* out,
+    char* inFile1, File* in1, char* inFile2,
+    File* in2, char* unFile1, File* un1,
+    char* unFile2, File* un2, char* logFile,
+    File* log, char* doveFile, File* dove,
     int dovetail, int gz) {
   // open required files
   openRead(inFile1, in1, gz);
@@ -514,7 +514,7 @@ void getParams(int argc, char** argv) {
     gz = 1;
 
   // open files
-  union File out, in1, in2, un1, un2, log, dove;
+  File out, in1, in2, un1, un2, log, dove;
   openFiles(outFile, &out, inFile1, &in1, inFile2, &in2,
     unFile1, &un1, unFile2, &un2, logFile, &log,
     doveFile, &dove, dovetail, gz);
