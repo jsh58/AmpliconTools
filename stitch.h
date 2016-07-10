@@ -7,6 +7,7 @@
 
 #define MAX_SIZE    1024   // maximum length for input line
 #define NOTMATCH    1.5f   // stitch failure
+#define GZEXT       ".gz"  // file extension for gzip compression
 
 // command-line parameters
 #define HELP        "-h"
@@ -60,3 +61,8 @@
 #define ERRMISM     12
 #define MERRMISM    "Mismatch must be in [0,1)"
 #define DEFERR      "Unknown error"
+
+union File {
+  FILE* f;
+  gzFile gzf;
+};
