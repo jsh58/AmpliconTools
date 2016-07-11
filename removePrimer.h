@@ -9,6 +9,7 @@
 #define CSV         ",\t"
 #define DEL         ",\t\n"
 #define END         "\0"
+#define GZEXT       ".gz"   // file extension for gzip compression
 
 // output labels
 #define FWD         " fwd"  // read matched a fwd primer
@@ -75,3 +76,8 @@ typedef struct primer {
   int rcountr;
   struct primer* next;
 } Primer;
+
+typedef union file {
+  FILE* f;
+  gzFile gzf;
+} File;

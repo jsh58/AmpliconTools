@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <zlib.h>
 #include "removePrimer.h"
 
 // global variables
@@ -23,7 +24,8 @@ void usage(void) {
   fprintf(stderr, " %s <file>} [optional parameters]\n", OUTFILE);
   fprintf(stderr, "Required parameters:\n");
   fprintf(stderr, "  %s  <file>       Input file containing reads from which to remove primers\n", INFILE);
-  fprintf(stderr, "                     (in fasta or fastq format)\n");
+  fprintf(stderr, "                     (in fasta or fastq format; can be gzip compressed,\n");
+  fprintf(stderr, "                     with \"%s\" extension)\n", GZEXT);
   fprintf(stderr, "  %s  <file>       Input file listing primer sequences, one set (forward and\n", PRIMFILE);
   fprintf(stderr, "                     reverse) per line, comma- or tab-delimited. For example:\n");
   fprintf(stderr, "                       341F-926R,CCTACGGGAGGCAGCAG,AAACTCAAAKGAATTGACGG\n");
@@ -32,7 +34,8 @@ void usage(void) {
   fprintf(stderr, "                     NOTE: Both primers should be given with respect to the plus\n");
   fprintf(stderr, "                       strand, i.e. the sequence given for the reverse primer is\n");
   fprintf(stderr, "                       the reverse-complement of actual reverse primer\n");
-  fprintf(stderr, "  %s  <file>       Output file for trimmed reads (same format as input)\n", OUTFILE);
+  fprintf(stderr, "  %s  <file>       Output file for trimmed reads (same format and compression\n", OUTFILE);
+  fprintf(stderr, "                     as input file containing reads [%s])\n", INFILE);
   fprintf(stderr, "Optional parameters:\n");
   fprintf(stderr, "  %s <int[,int]>  Position (or range of positions) at which to begin searching\n", FWDPOS);
   fprintf(stderr, "                     for the first primer (def. 0 [i.e. search will begin\n");
@@ -125,12 +128,22 @@ int getInt(char* in) {
   return ans;
 }
 
+/* char* getLine()
+ * Reads the next line from a file.
+ */
+char* getLine(char* line, int size, File in, int gz) {
+  if (gz)
+    return gzgets(in.gzf, line, size);
+  else
+    return fgets(line, size, in.f);
+}
+
 /* int fastaOrQ ()
  * Determines, based on the first character, if
  *   a file is likely fasta or fastq.
  */
-int fastaOrQ(FILE* in) {
-  while (fgets(line, MAX_SIZE, in) != NULL)
+int fastaOrQ(File in, int gz) {
+  while (getLine(line, MAX_SIZE, in, gz) != NULL)
     if (line[0] == '>')
       return 0;
     else if (line[0] == '@')
@@ -276,16 +289,21 @@ int checkRevEnd(char* seq, char* rev, int misAllow,
 /* int readFile()
  * Parses the input file. Produces the output file(s).
  */
-int readFile(FILE* in, FILE* out, int misAllow, int* match,
+int readFile(File in, File out, int misAllow, int* match,
     int* rcmatch, int fwdSt, int fwdEnd, int revSt, int revEnd,
-    int bedSt, int bedEnd, FILE* waste, int revMis, int revLen,
-    int revLMis, int revOpt, FILE* corr) {
-  int aorq = fastaOrQ(in);
-  rewind(in);
+    int bedSt, int bedEnd, File waste, int wasteOpt, int revMis,
+    int revLen, int revLMis, int revOpt, File corr, int corrOpt,
+    int gz) {
+  // determine if input is fasta or fastq
+  int aorq = fastaOrQ(in, gz);
+  gz ? gzrewind(in.gzf) : rewind(in.f);
+
   int count = 0;
-  while (fgets(hline, MAX_SIZE, in) != NULL) {
+  while (getLine(hline, MAX_SIZE, in, gz) != NULL) {
+    if (hline[0] == '#')
+      continue;
     count++;
-    if (fgets(line, MAX_SIZE, in) == NULL)
+    if (getLine(line, MAX_SIZE, in, gz) == NULL)
       exit(error("", ERRSEQ));
     int len = strlen(line) - 1;
     if (line[len] == '\n')
@@ -321,18 +339,23 @@ int readFile(FILE* in, FILE* out, int misAllow, int* match,
         f ? p->rcountr++ : p->fcountr++;
       if (revOpt && !end) {
         // rev primer not found (and was required [revOpt])
-        if (waste != NULL)
-          fprintf(waste, "%s%s\n", hline, line);
+        if (wasteOpt)
+          gz ? gzprintf(waste.gzf, "%s%s\n", hline, line)
+            : fprintf(waste.f, "%s%s\n", hline, line);
       } else {
         // print header
         for (int i = 0; hline[i] != '\0' && hline[i] != '\n'; i++)
-          fprintf(out, "%c", hline[i]);
-        fprintf(out, " %s%s%s\n", p->name,
+          gz ? gzputc(out.gzf, hline[i]) : putc(hline[i], out.f);
+        gz ? gzprintf(out.gzf, " %s%s%s\n", p->name,
+          f ? REV : FWD, end ? BOTH : "")
+          : fprintf(out.f, " %s%s%s\n", p->name,
           f ? REV : FWD, end ? BOTH : "");
-        if (corr != NULL) {
+        if (corrOpt) {
           for (int i = 0; hline[i] != '\0' && hline[i] != '\n'; i++)
-            fprintf(corr, "%c", hline[i]);
-          fprintf(corr, " %s%s%s\n", p->name,
+            gz ? gzputc(corr.gzf, hline[i]) : putc(hline[i], corr.f);
+          gz ? gzprintf(corr.gzf, " %s%s%s\n", p->name,
+            f ? REV : FWD, end ? BOTH : "")
+            : fprintf(corr.f, " %s%s%s\n", p->name,
             f ? REV : FWD, end ? BOTH : "");
         }
         // print sequence
@@ -341,48 +364,56 @@ int readFile(FILE* in, FILE* out, int misAllow, int* match,
         else
           (*rcmatch)++;
         for (int i = st; i < end; i++)
-          fprintf(out, "%c", line[i]);
-        fprintf(out, "\n");
+          gz ? gzputc(out.gzf, line[i]) : putc(line[i], out.f);
+        gz ? gzputc(out.gzf, '\n') : putc('\n', out.f);
         // reattach primers
-        if (corr != NULL) {
-          fprintf(corr, "%s", f ? p->rrc : p->fwd);
+        if (corrOpt) {
+          gz ? gzprintf(corr.gzf, "%s", f ? p->rrc : p->fwd)
+            : fprintf(corr.f, "%s", f ? p->rrc : p->fwd);
           for (int i = st; i < end; i++)
-            fprintf(corr, "%c", line[i]);
-          fprintf(corr, "%s\n", f ? p->frc : p->rev);
+            gz ? gzputc(corr.gzf, line[i]) : putc(line[i], corr.f);
+          gz ? gzprintf(corr.gzf, "%s\n", f ? p->frc : p->rev)
+            : fprintf(corr.f, "%s\n", f ? p->frc : p->rev);
         }
       }
-    } else if (waste != NULL)
-      fprintf(waste, "%s%s\n", hline, line);
+    } else if (wasteOpt)
+      gz ? gzprintf(waste.gzf, "%s%s\n", hline, line)
+        : fprintf(waste.f, "%s%s\n", hline, line);
 
     // read next 2 lines if fastq
     if (aorq) {
       for (int i = 0; i < 2; i++)
-        if (fgets(line, MAX_SIZE, in) == NULL)
+        if (getLine(line, MAX_SIZE, in, gz) == NULL)
           exit(error("", ERRSEQ));
         else if (p != NULL) {
           if (revOpt && !end) {
-            if (waste != NULL)
-              fprintf(waste, "%s", line);
+            if (wasteOpt)
+              gz ? gzprintf(waste.gzf, "%s", line)
+                : fprintf(waste.f, "%s", line);
           } else if (i) {
             for (int j = st; j < end; j++)
-              fprintf(out, "%c", line[j]);
-            fprintf(out, "\n");
-            if (corr != NULL) {
+              gz ? gzputc(out.gzf, line[j]) : putc(line[j], out.f);
+            gz ? gzputc(out.gzf, '\n') : putc('\n', out.f);
+            if (corrOpt) {
               for (int j = 0; j < strlen(f ? p->rrc : p->fwd); j++)
-                fprintf(corr, "I");
+                gz ? gzputc(corr.gzf, 'I') : putc('I', corr.f);
               for (int j = st; j < end; j++)
-                fprintf(corr, "%c", line[j]);
+                gz ? gzputc(corr.gzf, line[j]) : putc(line[j], corr.f);
               for (int j = 0; j < strlen(f ? p->frc : p->rev); j++)
-                fprintf(corr, "I");
-              fprintf(corr, "\n");
+                gz ? gzputc(corr.gzf, 'I') : putc('I', corr.f);
+              gz ? gzputc(corr.gzf, '\n') : putc('\n', corr.f);
             }
           } else {
-            fprintf(out, "%s", line);
-            if (corr != NULL)
-              fprintf(corr, "%s", line);
+            gz ? gzprintf(out.gzf, "%s", line)
+              : fprintf(out.f, "%s", line);
+            if (corrOpt)
+              gz ? gzprintf(corr.gzf, "%s", line)
+                : fprintf(corr.f, "%s", line);
           }
-        } else if (waste != NULL)
-          fprintf(waste, "%s", line);
+        } else if (wasteOpt)
+          gz ? gzprintf(waste.gzf, "%s", line)
+            : fprintf(waste.f, "%s", line);
+
     }
   }
   return count;
@@ -414,35 +445,68 @@ FILE* openWrite(char* outFile) {
   return out;
 }
 
+/* void openGZWrite()
+ * Open a (possibly gzip compressed) file for writing.
+ */
+void openGZWrite(char* outFile, File* out, int gz) {
+  if (gz) {
+    if (!strcmp(outFile + strlen(outFile) - strlen(GZEXT), GZEXT))
+      out->gzf = gzopen(outFile, "w");
+    else {
+      // add ".gz" to outFile
+      char* outFile2 = memalloc(strlen(outFile) +
+        strlen(GZEXT) + 1);
+      strcpy(outFile2, outFile);
+      strcat(outFile2, GZEXT);
+      out->gzf = gzopen(outFile2, "w");
+      free(outFile2);
+    }
+    if (out->gzf == NULL)
+      exit(error(outFile, ERROPENW));
+  } else
+    out->f = openWrite(outFile);
+}
+
+/* FILE* openRead()
+ * Opens a file for reading.
+ */
+FILE* openRead(char* inFile) {
+  FILE* in = fopen(inFile, "r");
+  if (in == NULL)
+    exit(error(inFile, ERROPEN));
+  return in;
+}
+
 /* void openFiles()
  * Opens the files to run the program.
  */
-void openFiles(char* outFile, FILE** out,
-    char* primFile, FILE** prim, char* inFile, FILE** in,
+void openFiles(char* outFile, File* out,
+    char* primFile, FILE** prim, char* inFile, File* in,
     char* logFile, FILE** log, char* bedFile, FILE** bed,
-    char* wasteFile, FILE** waste,
-    char* corrFile, FILE** corr) {
+    char* wasteFile, File* waste,
+    char* corrFile, File* corr, int gz) {
   // open required files
-  *out = openWrite(outFile);
-  *prim = fopen(primFile, "r");
-  if (*prim == NULL)
-    exit(error(primFile, ERROPEN));
-  *in = fopen(inFile, "r");
-  if (*in == NULL)
-    exit(error(inFile, ERROPEN));
+  *prim = openRead(primFile);
+  if (gz) {
+    // gzip compressed files
+    in->gzf = gzopen(inFile, "r");
+    if (in->gzf == NULL)
+      exit(error(inFile, ERROPEN));
+    openGZWrite(outFile, out, gz);
+  } else {
+    in->f = openRead(inFile);
+    out->f = openWrite(outFile);
+  }
 
   // open optional files
-  if (bedFile != NULL) {
-    *bed = fopen(bedFile, "r");
-    if (*bed == NULL)
-      exit(error(bedFile, ERROPEN));
-  }
+  if (bedFile != NULL)
+    *bed = openRead(bedFile);
   if (logFile != NULL)
     *log = openWrite(logFile);
   if (wasteFile != NULL)
-    *waste = openWrite(wasteFile);
+    openGZWrite(wasteFile, waste, gz);
   if (corrFile != NULL)
-    *corr = openWrite(corrFile);
+    openGZWrite(corrFile, corr, gz);
 }
 
 /* char rc(char)
@@ -636,13 +700,16 @@ void getParams(int argc, char** argv) {
 
   if (outFile == NULL || inFile == NULL || primFile == NULL)
     usage();
+  int gz = 0;
+  if (!strcmp(inFile + strlen(inFile) - strlen(GZEXT), GZEXT))
+    gz = 1;
 
   // open files, load primer sequences
-  FILE* out = NULL, *prim = NULL, *in = NULL, *log = NULL,
-    *bed = NULL, *waste = NULL, *corr = NULL;
+  File out, in, waste, corr;
+  FILE* prim = NULL, *log = NULL, *bed = NULL;
   openFiles(outFile, &out, primFile, &prim, inFile, &in,
     logFile, &log, bedFile, &bed, wasteFile, &waste,
-    corrFile, &corr);
+    corrFile, &corr, gz);
   int pr = loadSeqs(prim);
 
   // get start and end locations
@@ -659,7 +726,8 @@ void getParams(int argc, char** argv) {
   int match = 0, rcmatch = 0;  // counting variables
   int count = readFile(in, out, misAllow, &match, &rcmatch,
     fwdSt, fwdEnd, revSt, revEnd, bedSt, bedEnd,
-    waste, revMis, revLen, revLMis, revOpt, corr);
+    waste, wasteFile != NULL, revMis, revLen, revLMis,
+    revOpt, corr, corrFile != NULL, gz);
 
   // print log output
   if (log != NULL) {
@@ -672,9 +740,14 @@ void getParams(int argc, char** argv) {
   }
 
   // close files
-  if (fclose(out) || fclose(prim) || fclose(in) ||
-      (log != NULL && fclose(log)) || (bed != NULL && fclose(bed)) ||
-      (waste != NULL && fclose(waste)) || (corr != NULL && fclose(corr)))
+  if ( (gz && (gzclose(in.gzf) != Z_OK || gzclose(out.gzf) != Z_OK ||
+      (wasteFile != NULL && gzclose(waste.gzf) != Z_OK) ||
+      (corrFile != NULL && gzclose(corr.gzf) != Z_OK) ) ) ||
+      ( ! gz && (fclose(in.f) || fclose(out.f) ||
+      (wasteFile != NULL && fclose(waste.f)) ||
+      (corrFile != NULL && fclose(corr.f)) ) ) ||
+      fclose(prim) || (log != NULL && fclose(log)) ||
+      (bed != NULL && fclose(bed)) )
     exit(error("", ERRCLOSE));
 }
 
