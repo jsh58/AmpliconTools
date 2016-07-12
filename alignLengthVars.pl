@@ -245,7 +245,11 @@ foreach my $am (sort keys %seq) {
           }
         }
         close GEN;
-        open(GEN, $ARGV[5]) || die "Cannot open $ARGV[5]\n";
+        if (substr($ARGV[5], -3) eq ".gz") {
+          open(GEN, "zcat $ARGV[5] |");
+        } else {
+          open(GEN, $ARGV[5]);
+        }
         if ($chr) {
           if ($three) {
             $gen = reverse(substr($chr, $div[1] - 1 + $len, length $prim));

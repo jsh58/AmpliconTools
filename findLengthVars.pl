@@ -13,7 +13,8 @@ sub usage {
   print q(Usage: perl findLengthVars.pl  <infile1>  <infile2>  <outfile>  <percent>  <distance>
   Required:
     <infile1>  File containing input reads in fastq format, with primers removed
-                 and amplicon identification in header (produced by removePrimer)
+                 and amplicon identification in header (produced by removePrimer;
+                 may be gzip compressed, with ".gz" extension)
     <infile2>  BED file listing locations of primers
     <outfile>  Output file for length variants
   Optional:
@@ -30,7 +31,12 @@ sub usage {
 
 usage() if (scalar @ARGV < 3 || $ARGV[0] eq "-h");
 
-open(IN, $ARGV[0]) || die "Cannot open $ARGV[0]\n";
+if (substr($ARGV[0], -3) eq ".gz") {
+  die "Cannot open $ARGV[0]\n" if (! -f $ARGV[0]);
+  open(IN, "zcat $ARGV[0] |");
+} else {
+  open(IN, $ARGV[0]) || die "Cannot open $ARGV[0]\n";
+}
 open(BED, $ARGV[1]) || die "Cannot open $ARGV[1]\n";
 open(OUT, ">$ARGV[2]") || die "Cannot open $ARGV[2] for writing\n";
 
@@ -46,14 +52,14 @@ while (my $line = <BED>) {
   chomp $line;
   my @spl = split("\t", $line);
   if (scalar @spl < 4) {
-    print STDERR "Warning! Improperly formatted line in $ARGV[1]: $line\n  ",
-      "Need chromName, chromStart, chromEnd, and ampliconName (tab-delimited)\n";
+    warn "Warning! Improperly formatted line in $ARGV[1]: $line\n  ",
+      "Need chromName, start, end, and ampliconName (tab-delimited)\n";
     next;
   }
   if (exists $pos{$spl[3]}) {
     my @div = split("\t", $pos{$spl[3]});
     if ($div[0] ne $spl[0]) {
-      print STDERR "Warning: skipping amplicon $spl[3] --\n",
+      warn "Warning: skipping amplicon $spl[3] --\n",
         "  located at chromosomes $spl[0] and $div[0]!?\n";
       delete $pos{$spl[3]};
     }
@@ -74,7 +80,7 @@ close BED;
 foreach my $k (keys %pos) {
   my @spl = split("\t", $pos{$k});
   if (scalar @spl < 4) {
-    print STDERR "Warning! Insufficient information in $ARGV[1] for amplicon $k\n";
+    warn "Warning! Insufficient information in $ARGV[1] for amplicon $k\n";
     delete $pos{$k};
   } else {
     $pos{$k} = $spl[3];
@@ -102,7 +108,7 @@ while (my $line = <IN>) {
     "no amplicon ID in $line\n" if (!$id);
 
   if (! exists $pos{$id}) {
-    print STDERR "Warning! Skipping read $spl[0] with unknown amplicon $id\n";
+    warn "Warning! Skipping read $spl[0] with unknown amplicon $id\n";
     for (my $x = 0; $x < 3; $x++) {
       $line = <IN>;
     }

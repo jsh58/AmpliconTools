@@ -13,7 +13,8 @@ sub usage {
   print q(Usage: perl getLengthVars.pl  <infile1>  <infile2>  <outfile>
   Required:
     <infile1>  File containing input reads in fastq format, with primers removed
-                 and amplicon identification in header (produced by removePrimer)
+                 and amplicon identification in header (produced by removePrimer;
+                 may be gzip compressed, with ".gz" extension)
     <infile2>  File listing length variants (produced by findLengthVars.pl)
     <outfile>  Output file for reads
 );
@@ -22,7 +23,12 @@ sub usage {
 
 usage() if (scalar @ARGV < 3 || $ARGV[0] eq "-h");
 
-open(IN, $ARGV[0]) || die "Cannot open $ARGV[0]\n";
+if (substr($ARGV[0], -3) eq ".gz") {
+  die "Cannot open $ARGV[0]\n" if (! -f $ARGV[0]);
+  open(IN, "zcat $ARGV[0] |");
+} else {
+  open(IN, $ARGV[0]) || die "Cannot open $ARGV[0]\n";
+}
 open(AMP, $ARGV[1]) || die "Cannot open $ARGV[1]\n";
 open(OUT, ">$ARGV[2]") || die "Cannot open $ARGV[2] for writing\n";
 

@@ -13,7 +13,8 @@ sub usage {
                       <genome>  <outfile>  <score>  <logfile>
   Required:
     <infile1>  File containing input reads in fastq format, with primers removed
-                 and amplicon identification in header (produced by removePrimer)
+                 and amplicon identification in header (produced by removePrimer;
+                 may be gzip compressed, with ".gz" extension)
     <infile2>  SAM file containing mapping information
     <infile3>  File listing primer and target sequences (produced by getPrimers.pl)
     <infile4>  BED file listing locations of primers
@@ -29,7 +30,12 @@ sub usage {
 
 usage() if (scalar @ARGV < 6 || $ARGV[0] eq "-h");
 
-open(FQ, $ARGV[0]) || die "Cannot open $ARGV[0]\n";
+if (substr($ARGV[0], -3) eq ".gz") {
+  die "Cannot open $ARGV[0]\n" if (! -f $ARGV[0]);
+  open(FQ, "zcat $ARGV[0] |");
+} else {
+  open(FQ, $ARGV[0]) || die "Cannot open $ARGV[0]\n";
+}
 open(SAM, $ARGV[1]) || die "Cannot open $ARGV[1]\n";
 open(PR, $ARGV[2]) || die "Cannot open $ARGV[2]\n";
 open(BED, $ARGV[3]) || die "Cannot open $ARGV[3]\n";

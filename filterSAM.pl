@@ -14,7 +14,8 @@ sub usage {
                 <outfile>  <infile5>  <logfile>  <score>
   Required:
     <infile1>  File containing input reads in fastq format, with primers removed
-                 and amplicon identification in header (produced by removePrimer)
+                 and amplicon identification in header (produced by removePrimer;
+                 may be gzip compressed, with ".gz" extension)
     <infile2>  BED file listing locations of primers
     <infile3>  File listing alternative mapping locations and whether putative primers
                  are exact/close (1) or way off (0) (produced by checkAltMapping.pl)
@@ -32,7 +33,12 @@ sub usage {
 usage() if (scalar @ARGV < 5 || $ARGV[0] eq "-h");
 
 # open files
-open(FQ, $ARGV[0]) || die "Cannot open $ARGV[0]\n";
+if (substr($ARGV[0], -3) eq ".gz") {
+  die "Cannot open $ARGV[0]\n" if (! -f $ARGV[0]);
+  open(FQ, "zcat $ARGV[0] |");
+} else {
+  open(FQ, $ARGV[0]) || die "Cannot open $ARGV[0]\n";
+}
 open(BED, $ARGV[1]) || die "Cannot open $ARGV[1]\n";
 open(ALT, $ARGV[2]) || die "Cannot open $ARGV[2]\n";
 open(SAM, $ARGV[3]) || die "Cannot open $ARGV[3]\n";
@@ -62,14 +68,14 @@ while (my $line = <BED>) {
   chomp $line;
   my @spl = split("\t", $line);
   if (scalar @spl < 4) {
-    print STDERR "Warning! Improperly formatted line in $ARGV[1]: $line\n  ",
-      "Need chromName, chromStart, chromEnd, and ampliconName (tab-delimited)\n";
+    warn "Warning! Improperly formatted line in $ARGV[1]: $line\n  ",
+      "Need chromName, start, end, and ampliconName (tab-delimited)\n";
     next;
   }
   if (exists $pos{$spl[3]}) {
     my @div = split("\t", $pos{$spl[3]});
     if ($div[0] ne $spl[0]) {
-      print STDERR "Warning! Skipping amplicon $spl[3] --\n",
+      warn "Warning! Skipping amplicon $spl[3] --\n",
         "  located at chromosomes $spl[0] and $div[0]!?\n";
     } else {
       # 20bp wiggle room on either side
@@ -115,7 +121,7 @@ while (my $line = <FQ>) {
       if (exists $amp{$que}) {
         my @div = split("\t", $amp{$que});
         if ($id ne $div[0]) {
-          print STDERR "Warning! Primers do not match for read $que\n";
+          warn "Warning! Primers do not match for read $que\n";
           delete $amp{$que};
           last;
         }
@@ -134,10 +140,10 @@ while (my $line = <FQ>) {
   }
 
   if (! exists $amp{$que}) {
-    print STDERR "Warning! Skipping read $que --\n",
+    warn "Warning! Skipping read $que --\n",
       "  no amplicon found\n";
     $line = <FQ>;
-  } 
+  }
   $count++;
   for (my $x = 0; $x < 2; $x++) {
     $line = <FQ>;
@@ -238,7 +244,7 @@ while ($line) {
     }
   } elsif (! exists $amp{$spl[0]}) {
     # no amplicon info: save results, check for new alignment
-    print STDERR "Warning! No amplicon info for read $spl[0]\n";
+    warn "Warning! No amplicon info for read $spl[0]\n";
     push @res, $line;
     while ($line = <SAM>) {
       chomp $line;
@@ -304,7 +310,7 @@ while ($line) {
           $pr = $amp{$div[0]};
         }
         if (!$pr) {
-          print STDERR "Warning! No removed-primer info for read $div[0]\n";
+          warn "Warning! No removed-primer info for read $div[0]\n";
           #push @res, $line;  # save mapping(?)
           $line = <SAM>;
           next;
@@ -313,7 +319,7 @@ while ($line) {
         # check alternative location
         my $lc = ($rc ? '-' : '+')."\t$div[2]\t$pos"; # 2nd key to %alt
         if ((! exists $alt{$pr}) || (! exists $alt{$pr}{$lc})) {
-          print STDERR "Warning! No alt. location info for read $div[0], $pr\t$lc\n";
+          warn "Warning! No alt. location info for read $div[0], $pr\t$lc\n";
           #push @res, $line;  # save mapping(?)
           $line = <SAM>;
           next;
@@ -409,7 +415,7 @@ while ($line) {
         $pral++ if (!$x);
       }
     } else {
-      print STDERR "Warning! Cannot consider realignment for read $spl[0]\n",
+      warn "Warning! Cannot consider realignment for read $spl[0]\n",
         "Sequences do not match:\n$div[6]\n$seq\n";
     }
   }
@@ -497,7 +503,7 @@ sub getTag {
     }
   }
   if ($ret == 1000) {
-    print STDERR "Error! Cannot find $tag in SAM record:\n",
+    warn "Error! Cannot find $tag in SAM record:\n",
       join("\t", @spl), "\n";
     die;
   }
