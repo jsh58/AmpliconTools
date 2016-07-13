@@ -9,7 +9,7 @@
 
 # check command-line arguments
 if [ $# -lt 3 ]; then
-  echo "Usage: `basename $0`  <BED>  <GEN>  [<VAR>]" 1>&2
+  echo "Usage: ./`basename $0`  <BED>  <GEN>  [<VAR>]" 1>&2
   exit -1
 fi
 

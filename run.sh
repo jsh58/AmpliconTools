@@ -18,7 +18,7 @@ fi
 
 # check command-line arguments
 if [ $# -lt 6 ]; then
-  echo "Usage: `basename $0`  <FASTQ1>  <FASTQ2>  <BED>  <GEN>  <IDX>  <DIR>" 1>&2
+  echo "Usage: ./`basename $0`  <FASTQ1>  <FASTQ2>  <BED>  <GEN>  <IDX>  <DIR>" 1>&2
   exit -1
 fi
 
@@ -71,8 +71,8 @@ ${HOME_DIR}/removePrimer -i $tr1 -p $prim -o $tr0 $rpParam -rq -l $log1 -w $tr4 
 echo "Getting failure reads"
 tr5=nopr1.fastq
 tr6=nopr2.fastq
-perl ${HOME_DIR}/getReads.pl $tr4 $file1 $tr5
-perl ${HOME_DIR}/getReads.pl $tr4 $file2 $tr6
+python ${HOME_DIR}/getReads.py $tr4 $file1 $tr5
+python ${HOME_DIR}/getReads.py $tr4 $file2 $tr6
 # cat with unjoined reads
 cat $tr2 >> $tr5
 cat $tr3 >> $tr6
