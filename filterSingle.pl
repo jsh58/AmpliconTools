@@ -12,14 +12,17 @@ use warnings;
 sub usage {
   print q(Usage: perl filterSingle.pl  <in1>  <in2>  <out>  [options]
   Required:
-    <in1>   Input FASTQ file #1, with primers removed and amplicon identification
-              in header (produced by removePrimer)
-    <in2>   Input FASTQ file #2, with primers removed and amplicon identification
-              in header (produced by removePrimer)
+    <in1>   Input FASTQ file #1, with primers removed and amplicon
+              identification in header (produced by removePrimer)
+    <in2>   Input FASTQ file #2, with primers removed and amplicon
+              identification in header (produced by removePrimer)
     <out>   Output FASTQ file with filtered singletons
+    Note: Input FASTQ files may be gzip compressed (with ".gz"
+      extension). <out> will be compressed if either input is.
   Options for duplicates (in order of precedence):
-     -c     Option to remove both singletons that had different primers
-              removed (like they were derived from a PCR chimera)
+     -c     Option to remove both singletons that had primers from
+              different amplicons (like they were derived from a PCR
+              chimera)
      -b     Option to favor singletons that have both primers removed
               over those that have not
      -q     Option to keep only higher quality singleton
@@ -32,9 +35,27 @@ sub usage {
 usage() if (scalar @ARGV < 3 || $ARGV[0] eq "-h");
 
 # open files
-open(FQ1, $ARGV[0]) || die "Cannot open $ARGV[0]\n";
-open(FQ2, $ARGV[1]) || die "Cannot open $ARGV[1]\n";
-open(OUT, ">$ARGV[2]") || die "Cannot open $ARGV[2] for writing\n";
+my $gz = 0;
+if (substr($ARGV[0], -3) eq ".gz") {
+  die "Cannot open $ARGV[0]\n" if (! -f $ARGV[0]);
+  open(FQ1, "zcat $ARGV[0] |");
+  $gz = 1;
+} else {
+  open(FQ1, $ARGV[0]) || die "Cannot open $ARGV[0]\n";
+}
+if (substr($ARGV[1], -3) eq ".gz") {
+  die "Cannot open $ARGV[1]\n" if (! -f $ARGV[1]);
+  open(FQ2, "zcat $ARGV[1] |");
+  $gz = 1;
+} else {
+  open(FQ2, $ARGV[1]) || die "Cannot open $ARGV[1]\n";
+}
+if ($gz) {
+  $ARGV[2] .= ".gz" if (substr($ARGV[2], -3) ne ".gz");
+  open (OUT, "| gzip -c - > $ARGV[2]");
+} else {
+  open(OUT, ">$ARGV[2]") || die "Cannot open $ARGV[2] for writing\n";
+}
 
 # save options
 my $chim = 0;

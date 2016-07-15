@@ -79,5 +79,5 @@ while (my $line = <IN>) {
   }
 }
 close IN;
-
+close OUT;
 #print "Reads printed to $ARGV[2]: $count\n";
