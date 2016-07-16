@@ -16,7 +16,7 @@ sub usage {
                  (produced by getLengthVars.pl)
     <infile2>  File listing primer and target sequences (produced by getPrimers.pl)
     <infile3>  BED file listing locations of primers
-    <outfile>  Output file containing SAM mapping info
+    <outfile>  Output file containing alignment information for a SAM file
   Optional:
     <logfile>  Verbose output file listing possible CIGARs and scores for each read
     <genome>   Fasta file of reference genome (to evaluate external insertions)

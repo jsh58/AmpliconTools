@@ -15,7 +15,7 @@ sub usage {
     <infile1>  File containing input reads in fastq format, with primers removed
                  and amplicon identification in header (produced by removePrimer;
                  may be gzip compressed, with ".gz" extension)
-    <infile2>  SAM file containing mapping information
+    <infile2>  SAM file (can use '-' for STDIN [e.g. piped in from samtools])
     <infile3>  File listing primer and target sequences (produced by getPrimers.pl)
     <infile4>  BED file listing locations of primers
     <genome>   Fasta file of reference genome (single file; may be

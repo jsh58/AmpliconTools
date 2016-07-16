@@ -36,11 +36,11 @@
 
 // error messages
 #define ERROPEN     0
-#define MERROPEN    "cannot open file for reading"
+#define MERROPEN    ": cannot open file for reading"
 #define ERRCLOSE    1
 #define MERRCLOSE   "cannot close file"
 #define ERROPENW    2
-#define MERROPENW   "cannot open file for writing"
+#define MERROPENW   ": cannot open file for writing"
 #define ERRUNK      3
 #define MERRUNK     "unknown file type (not fasta or fastq)"
 #define ERRMEM      4

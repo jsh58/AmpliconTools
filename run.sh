@@ -116,7 +116,7 @@ fi
 echo "Mapping with bowtie2"
 out3=combined.sam
 bwtParam="-D 200 -N 1 -L 18 -i S,1,0.50 -k 20"
-proc=4   # number of processors
+proc=1   # number of processors
 bowtie2 -x $idx -U $out2 -S $out3 $bwtParam -p $proc
 
 # find length variants

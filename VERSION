@@ -2,10 +2,10 @@ AmpliconTools
 
 Version 1.1 - July 2016
   * Updated programs/scripts:
-      - Analysis of gzip compressed input
+      - Option of using gzip compressed input
           FASTQ files and reference genome
       - Improved reference genome parsing
-      - Improved error messages
+      - Improved usage and error messages
 
   ** Many thanks to the anonymous reviewer
      who recommended these improvements. **

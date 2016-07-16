@@ -19,8 +19,8 @@ sub usage {
     <infile2>  BED file listing locations of primers
     <infile3>  File listing alternative mapping locations and whether putative primers
                  are exact/close (1) or way off (0) (produced by checkAltMapping.pl)
-    <infile4>  Input SAM file containing mapping information
-    <outfile>  Output SAM file
+    <infile4>  Input SAM file (can use '-' for STDIN [e.g. piped in from samtools])
+    <outfile>  Output SAM file (can use '-' for STDOUT [e.g. piped out to samtools])
   Optional:
     <infile5>  File containing realignment info (produced by alignLengthVars.pl)
     <logfile>  Log file for realignments

@@ -36,7 +36,7 @@ Choosing different parameters, or saving various intermediate files, can be
 accomplished by editing the run.sh script.
 
 Since output file names are specified in run.sh, one should not execute multiple
-instances in the same location.
+instances in the same location, nor should one use gzip compressed input files.
 
 - John M. Gaspar (jmgaspar@gwu.edu)
   June 2015
