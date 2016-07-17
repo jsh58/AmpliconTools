@@ -3,8 +3,7 @@
 # John M. Gaspar
 # Nov. 2014
 
-# Find putative small structural variants (based on
-#   length variants) in a fastq file.
+# Find length variant reads in a fastq file.
 
 use strict;
 use warnings;
@@ -16,7 +15,7 @@ sub usage {
                  and amplicon identification in header (produced by removePrimer;
                  may be gzip compressed, with ".gz" extension)
     <infile2>  File listing length variants (produced by findLengthVars.pl)
-    <outfile>  Output file for reads
+    <outfile>  Output file for length variant reads
 );
   exit;
 }
