@@ -3,7 +3,7 @@
   <command>
 
     ## stitch together the PE reads
-    stitch -1 "$in1" -2 "$in2" -o temp0
+    $__tool_directory__/stitch -1 "$in1" -2 "$in2" -o temp0
 
     #if str( $stitch.stitch_opt ) == "yes":
       -m "$stitch.overlap"
@@ -29,7 +29,7 @@
     ;
 
     ## remove primers from both ends
-    removePrimer -i temp0 -p "$prim" -o "$joined" -rq
+    $__tool_directory__/removePrimer -i temp0 -p "$prim" -o "$joined" -rq
 
     #if str( $removePrimer.rp_opt ) == "yes":
       -ef "$removePrimer.ef"
@@ -63,7 +63,7 @@
       cat temp2 &gt;&gt; temp5;
 
       ## remove primers separately
-      removePrimer -i temp4 -p "$prim" -o temp6
+      $__tool_directory__/removePrimer -i temp4 -p "$prim" -o temp6
 
       #if str( $single.removePrimer2.rp2_opt ) == "yes":
         $single.removePrimer2.require
@@ -88,7 +88,7 @@
       #end if
       ;
 
-      removePrimer -i temp5 -p "$prim" -o temp7
+      $__tool_directory__/removePrimer -i temp5 -p "$prim" -o temp7
 
       #if str( $single.removePrimer2.rp2_opt ) == "yes":
         $single.removePrimer2.require

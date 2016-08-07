@@ -1,7 +1,7 @@
 <tool id="removeprimer" name="Remove PCR primers" version="1.1">
   <description> from a set of reads</description>
   <command>
-    removePrimer -i "$in" -p "$prim" -o "$out" $require
+    $__tool_directory__/removePrimer -i "$in" -p "$prim" -o "$out" $require
 
     ## output files
     #if str( $output.output_selector ) == "yes":

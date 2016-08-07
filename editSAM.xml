@@ -83,11 +83,11 @@ This tool uses the alignment output from the tool *Align length-variant reads*.
 It begins by throwing out some realignments -- external in/del artifacts (see
 *External in/dels* below), and those that have too many substitutions
 (this evaluation is based on Bowtie2's default end-to-end alignment score
-threshold [-0.6*length - 0.6] and is not parameterized -- cf. lines 183-192 of
+threshold [-0.6*length - 0.6] and is not parameterized -- cf. lines 192-201 of
 filterSAM.pl).
 
 Each remaining realignment, if not identical to the corresponding read mapping
-already in the SAM file, is added to the SAM. It is labelled as the primary
+already in the SAM file, is added to the SAM. It is labeled as the primary
 map if it is better than the previous primary map, with respect to the number of
 substitutions (or if it is equal and external -- see *External in/dels* below).
 Otherwise, it is listed as a secondary map.

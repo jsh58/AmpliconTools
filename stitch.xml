@@ -1,7 +1,8 @@
 <tool id="stitch" name="Stitch" version="1.1">
   <description> together paired-end reads</description>
   <command>
-    stitch -1 "$in1" -2 "$in2" -o "$out" -m "$overlap" -p "$pct" $short_opt
+    $__tool_directory__/stitch -1 "$in1" -2 "$in2" -o "$out"
+      -m "$overlap" -p "$pct" $short_opt
 
     #if str( $dove_opt ) == "true":
       -d

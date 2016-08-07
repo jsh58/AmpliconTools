@@ -6,83 +6,99 @@
     "steps": {
         "0": {
             "annotation": "", 
+            "content_id": null, 
             "id": 0, 
             "input_connections": {}, 
             "inputs": [
                 {
                     "description": "", 
-                    "name": "Input Dataset"
+                    "name": "BED file listing primer locations"
                 }
             ], 
+            "label": null, 
             "name": "Input dataset", 
             "outputs": [], 
             "position": {
                 "left": 200, 
-                "top": 200
+                "top": 253
             }, 
             "tool_errors": null, 
             "tool_id": null, 
-            "tool_state": "{\"name\": \"Input Dataset\"}", 
+            "tool_state": "{\"name\": \"BED file listing primer locations\"}", 
             "tool_version": null, 
             "type": "data_input", 
-            "user_outputs": []
+            "uuid": "b0b5e5b6-2945-48c4-955f-22d902db3f60", 
+            "workflow_outputs": []
         }, 
         "1": {
             "annotation": "", 
+            "content_id": null, 
             "id": 1, 
             "input_connections": {}, 
             "inputs": [
                 {
                     "description": "", 
-                    "name": "Input Dataset"
+                    "name": "Sample FASTQ #1"
                 }
             ], 
+            "label": null, 
             "name": "Input dataset", 
             "outputs": [], 
             "position": {
-                "left": 200, 
-                "top": 320
+                "left": 272, 
+                "top": 407
             }, 
             "tool_errors": null, 
             "tool_id": null, 
-            "tool_state": "{\"name\": \"Input Dataset\"}", 
+            "tool_state": "{\"name\": \"Sample FASTQ #1\"}", 
             "tool_version": null, 
             "type": "data_input", 
-            "user_outputs": []
+            "uuid": "bd593d26-d972-44a8-baec-59e7bd35e1db", 
+            "workflow_outputs": []
         }, 
         "2": {
             "annotation": "", 
+            "content_id": null, 
             "id": 2, 
             "input_connections": {}, 
             "inputs": [
                 {
                     "description": "", 
-                    "name": "Input Dataset"
+                    "name": "Sample FASTQ #2"
                 }
             ], 
+            "label": null, 
             "name": "Input dataset", 
             "outputs": [], 
             "position": {
-                "left": 200, 
-                "top": 440
+                "left": 270, 
+                "top": 510
             }, 
             "tool_errors": null, 
             "tool_id": null, 
-            "tool_state": "{\"name\": \"Input Dataset\"}", 
+            "tool_state": "{\"name\": \"Sample FASTQ #2\"}", 
             "tool_version": null, 
             "type": "data_input", 
-            "user_outputs": []
+            "uuid": "cb04d83b-0123-4eef-afeb-daa11fbff113", 
+            "workflow_outputs": []
         }, 
         "3": {
             "annotation": "", 
+            "content_id": "getprimers", 
             "id": 3, 
             "input_connections": {
                 "bed": {
-                    "id": 2, 
+                    "id": 0, 
                     "output_name": "output"
                 }
             }, 
-            "inputs": [], 
+            "inputs": [
+                {
+                    "description": "runtime parameter for tool Retrieve primers and target sequences", 
+                    "name": "bed"
+                }
+            ], 
+            "label": null, 
             "name": "Retrieve primers and target sequences", 
             "outputs": [
                 {
@@ -91,8 +107,8 @@
                 }
             ], 
             "position": {
-                "left": 420, 
-                "top": 200
+                "left": 413, 
+                "top": 124
             }, 
             "post_job_actions": {
                 "HideDatasetActionoutput": {
@@ -103,21 +119,23 @@
             }, 
             "tool_errors": null, 
             "tool_id": "getprimers", 
-            "tool_state": "{\"__page__\": 0, \"__rerun_remap_job_id__\": null, \"chromInfo\": \"\\\"/home/john/galaxy-dist/tool-data/shared/ucsc/chrom/?.len\\\"\", \"gen\": \"{\\\"__class__\\\": \\\"UnvalidatedValue\\\", \\\"value\\\": \\\"/home/john/Downloads/Homo_sapiens/UCSC/hg19/Sequence/WholeGenomeFasta/genome.fa\\\"}\", \"bed\": \"null\"}", 
-            "tool_version": "1.0.0", 
+            "tool_state": "{\"__page__\": 0, \"__rerun_remap_job_id__\": null, \"chromInfo\": \"\\\"/home/john/galaxy/tool-data/shared/ucsc/chrom/?.len\\\"\", \"gen\": \"\\\"hg19\\\"\", \"bed\": \"{\\\"__class__\\\": \\\"RuntimeValue\\\"}\"}", 
+            "tool_version": "1.1", 
             "type": "tool", 
-            "user_outputs": []
+            "uuid": "a7c6e781-b476-4356-85db-4b8b0836ef8f", 
+            "workflow_outputs": []
         }, 
         "4": {
             "annotation": "", 
+            "content_id": "preprocess", 
             "id": 4, 
             "input_connections": {
                 "in1": {
-                    "id": 0, 
+                    "id": 1, 
                     "output_name": "output"
                 }, 
                 "in2": {
-                    "id": 1, 
+                    "id": 2, 
                     "output_name": "output"
                 }, 
                 "prim": {
@@ -125,11 +143,25 @@
                     "output_name": "output"
                 }, 
                 "single|removePrimer2|bed2|bedfile2": {
-                    "id": 2, 
+                    "id": 0, 
                     "output_name": "output"
                 }
             }, 
-            "inputs": [], 
+            "inputs": [
+                {
+                    "description": "runtime parameter for tool Preprocess reads", 
+                    "name": "prim"
+                }, 
+                {
+                    "description": "runtime parameter for tool Preprocess reads", 
+                    "name": "in1"
+                }, 
+                {
+                    "description": "runtime parameter for tool Preprocess reads", 
+                    "name": "in2"
+                }
+            ], 
+            "label": null, 
             "name": "Preprocess reads", 
             "outputs": [
                 {
@@ -162,8 +194,8 @@
                 }
             ], 
             "position": {
-                "left": 640, 
-                "top": 200
+                "left": 556, 
+                "top": 326
             }, 
             "post_job_actions": {
                 "HideDatasetActioncomb": {
@@ -204,13 +236,15 @@
             }, 
             "tool_errors": null, 
             "tool_id": "preprocess", 
-            "tool_state": "{\"__page__\": 0, \"prim\": \"null\", \"stitch\": \"{\\\"short_opt\\\": \\\"False\\\", \\\"dove_opt\\\": \\\"True\\\", \\\"pct\\\": \\\"0.1\\\", \\\"stitchlog_opt\\\": \\\"False\\\", \\\"overlap\\\": \\\"20\\\", \\\"__current_case__\\\": 0, \\\"stitch_opt\\\": \\\"yes\\\", \\\"dovelog_opt\\\": \\\"False\\\"}\", \"removePrimer\": \"{\\\"fp\\\": \\\"-1,1\\\", \\\"rp\\\": \\\"-1,1\\\", \\\"rp_opt\\\": \\\"yes\\\", \\\"ef\\\": \\\"2\\\", \\\"bed\\\": {\\\"bed_opt\\\": \\\"no\\\", \\\"__current_case__\\\": 1}, \\\"internal\\\": {\\\"int_opt\\\": \\\"no\\\", \\\"__current_case__\\\": 1}, \\\"__current_case__\\\": 0, \\\"rplog_opt\\\": \\\"False\\\", \\\"er\\\": \\\"2\\\"}\", \"__rerun_remap_job_id__\": null, \"in1\": \"null\", \"in2\": \"null\", \"single\": \"{\\\"both\\\": \\\"True\\\", \\\"removePrimer2\\\": {\\\"rp2_opt\\\": \\\"yes\\\", \\\"rp2\\\": \\\"-1,1\\\", \\\"rp2log_opt\\\": \\\"False\\\", \\\"er2\\\": \\\"2\\\", \\\"require\\\": \\\"False\\\", \\\"internal2\\\": {\\\"el2\\\": \\\"1\\\", \\\"int2_opt\\\": \\\"yes\\\", \\\"__current_case__\\\": 0, \\\"rl2\\\": \\\"16\\\"}, \\\"bed2\\\": {\\\"bp2\\\": \\\"-1,1\\\", \\\"bed2_opt\\\": \\\"yes\\\", \\\"__current_case__\\\": 0, \\\"bedfile2\\\": null}, \\\"__current_case__\\\": 0, \\\"fp2\\\": \\\"-1,1\\\", \\\"ef2\\\": \\\"2\\\"}, \\\"qual\\\": \\\"True\\\", \\\"__current_case__\\\": 0, \\\"chim\\\": \\\"True\\\", \\\"single_opt\\\": \\\"yes\\\"}\", \"chromInfo\": \"\\\"/home/john/galaxy-dist/tool-data/shared/ucsc/chrom/?.len\\\"\"}", 
-            "tool_version": "1.0.0", 
+            "tool_state": "{\"__page__\": 0, \"prim\": \"{\\\"__class__\\\": \\\"RuntimeValue\\\"}\", \"stitch\": \"{\\\"short_opt\\\": \\\"false\\\", \\\"dove_opt\\\": \\\"true\\\", \\\"pct\\\": \\\"0.1\\\", \\\"stitchlog_opt\\\": \\\"false\\\", \\\"overlap\\\": \\\"20\\\", \\\"__current_case__\\\": 0, \\\"stitch_opt\\\": \\\"yes\\\", \\\"dovelog_opt\\\": \\\"false\\\"}\", \"removePrimer\": \"{\\\"fp\\\": \\\"-1,1\\\", \\\"rp\\\": \\\"-1,1\\\", \\\"rp_opt\\\": \\\"yes\\\", \\\"ef\\\": \\\"2\\\", \\\"bed\\\": {\\\"bed_opt\\\": \\\"no\\\", \\\"__current_case__\\\": 1}, \\\"internal\\\": {\\\"__current_case__\\\": 1, \\\"int_opt\\\": \\\"no\\\"}, \\\"__current_case__\\\": 0, \\\"rplog_opt\\\": \\\"false\\\", \\\"er\\\": \\\"2\\\"}\", \"__rerun_remap_job_id__\": null, \"in1\": \"{\\\"__class__\\\": \\\"RuntimeValue\\\"}\", \"in2\": \"{\\\"__class__\\\": \\\"RuntimeValue\\\"}\", \"single\": \"{\\\"both\\\": \\\"true\\\", \\\"removePrimer2\\\": {\\\"rp2_opt\\\": \\\"yes\\\", \\\"rp2\\\": \\\"-1,1\\\", \\\"rp2log_opt\\\": \\\"false\\\", \\\"er2\\\": \\\"2\\\", \\\"require\\\": \\\"false\\\", \\\"internal2\\\": {\\\"el2\\\": \\\"1\\\", \\\"int2_opt\\\": \\\"yes\\\", \\\"__current_case__\\\": 0, \\\"rl2\\\": \\\"16\\\"}, \\\"bed2\\\": {\\\"bp2\\\": \\\"-1,1\\\", \\\"bed2_opt\\\": \\\"yes\\\", \\\"__current_case__\\\": 0, \\\"bedfile2\\\": {\\\"__class__\\\": \\\"RuntimeValue\\\"}}, \\\"__current_case__\\\": 0, \\\"fp2\\\": \\\"-1,1\\\", \\\"ef2\\\": \\\"2\\\"}, \\\"qual\\\": \\\"true\\\", \\\"__current_case__\\\": 0, \\\"chim\\\": \\\"true\\\", \\\"single_opt\\\": \\\"yes\\\"}\", \"chromInfo\": \"\\\"/home/john/galaxy/tool-data/shared/ucsc/chrom/?.len\\\"\"}", 
+            "tool_version": "1.1", 
             "type": "tool", 
-            "user_outputs": []
+            "uuid": "a1869c72-7562-44a1-ba17-a9fb75b9f329", 
+            "workflow_outputs": []
         }, 
         "5": {
             "annotation": "", 
+            "content_id": "qualtrim", 
             "id": 5, 
             "input_connections": {
                 "in": {
@@ -218,7 +252,13 @@
                     "output_name": "comb"
                 }
             }, 
-            "inputs": [], 
+            "inputs": [
+                {
+                    "description": "runtime parameter for tool Quality filtering", 
+                    "name": "in"
+                }
+            ], 
+            "label": null, 
             "name": "Quality filtering", 
             "outputs": [
                 {
@@ -227,8 +267,8 @@
                 }
             ], 
             "position": {
-                "left": 860, 
-                "top": 200
+                "left": 870, 
+                "top": 346
             }, 
             "post_job_actions": {
                 "HideDatasetActionout": {
@@ -239,17 +279,19 @@
             }, 
             "tool_errors": null, 
             "tool_id": "qualtrim", 
-            "tool_state": "{\"trim\": \"{\\\"trim_opt\\\": \\\"both\\\", \\\"__current_case__\\\": 0}\", \"__page__\": 0, \"__rerun_remap_job_id__\": null, \"l\": \"\\\"0\\\"\", \"n\": \"\\\"20\\\"\", \"q\": \"\\\"0.0\\\"\", \"t\": \"\\\"30.0\\\"\", \"in\": \"null\", \"chromInfo\": \"\\\"/home/john/galaxy-dist/tool-data/shared/ucsc/chrom/?.len\\\"\"}", 
-            "tool_version": "1.0.0", 
+            "tool_state": "{\"trim\": \"{\\\"trim_opt\\\": \\\"both\\\", \\\"__current_case__\\\": 0}\", \"__page__\": 0, \"__rerun_remap_job_id__\": null, \"l\": \"\\\"0\\\"\", \"n\": \"\\\"20\\\"\", \"q\": \"\\\"0.0\\\"\", \"t\": \"\\\"30.0\\\"\", \"in\": \"{\\\"__class__\\\": \\\"RuntimeValue\\\"}\", \"chromInfo\": \"\\\"/home/john/galaxy/tool-data/shared/ucsc/chrom/?.len\\\"\"}", 
+            "tool_version": "1.1", 
             "type": "tool", 
-            "user_outputs": []
+            "uuid": "145682a3-ed97-4c82-ad3f-8b6f67bc1d8c", 
+            "workflow_outputs": []
         }, 
         "6": {
             "annotation": "", 
+            "content_id": "lengthvars", 
             "id": 6, 
             "input_connections": {
                 "bed": {
-                    "id": 2, 
+                    "id": 0, 
                     "output_name": "output"
                 }, 
                 "fastq": {
@@ -261,7 +303,21 @@
                     "output_name": "output"
                 }
             }, 
-            "inputs": [], 
+            "inputs": [
+                {
+                    "description": "runtime parameter for tool Align length-variant reads", 
+                    "name": "prim"
+                }, 
+                {
+                    "description": "runtime parameter for tool Align length-variant reads", 
+                    "name": "fastq"
+                }, 
+                {
+                    "description": "runtime parameter for tool Align length-variant reads", 
+                    "name": "bed"
+                }
+            ], 
+            "label": null, 
             "name": "Align length-variant reads", 
             "outputs": [
                 {
@@ -274,8 +330,8 @@
                 }
             ], 
             "position": {
-                "left": 860, 
-                "top": 320
+                "left": 962, 
+                "top": 595
             }, 
             "post_job_actions": {
                 "HideDatasetActionlog": {
@@ -291,13 +347,15 @@
             }, 
             "tool_errors": null, 
             "tool_id": "lengthvars", 
-            "tool_state": "{\"__page__\": 0, \"prim\": \"null\", \"fastq\": \"null\", \"log_opt\": \"\\\"False\\\"\", \"pct\": \"\\\"0.01\\\"\", \"len\": \"\\\"5\\\"\", \"bed\": \"null\", \"chromInfo\": \"\\\"/home/john/galaxy-dist/tool-data/shared/ucsc/chrom/?.len\\\"\", \"__rerun_remap_job_id__\": null, \"genome\": \"{\\\"genome_opt\\\": \\\"yes\\\", \\\"gen\\\": {\\\"__class__\\\": \\\"UnvalidatedValue\\\", \\\"value\\\": \\\"/home/john/Downloads/Homo_sapiens/UCSC/hg19/Sequence/WholeGenomeFasta/genome.fa\\\"}, \\\"__current_case__\\\": 0}\"}", 
-            "tool_version": "1.0.0", 
+            "tool_state": "{\"__page__\": 0, \"prim\": \"{\\\"__class__\\\": \\\"RuntimeValue\\\"}\", \"fastq\": \"{\\\"__class__\\\": \\\"RuntimeValue\\\"}\", \"log_opt\": \"\\\"false\\\"\", \"bed\": \"{\\\"__class__\\\": \\\"RuntimeValue\\\"}\", \"len\": \"\\\"5\\\"\", \"pct\": \"\\\"0.01\\\"\", \"chromInfo\": \"\\\"/home/john/galaxy/tool-data/shared/ucsc/chrom/?.len\\\"\", \"__rerun_remap_job_id__\": null, \"genome\": \"{\\\"genome_opt\\\": \\\"yes\\\", \\\"gen\\\": \\\"hg19\\\", \\\"__current_case__\\\": 0}\"}", 
+            "tool_version": "1.1", 
             "type": "tool", 
-            "user_outputs": []
+            "uuid": "e2078c1c-8a06-4fea-9c4e-ee8ab7f5b4d5", 
+            "workflow_outputs": []
         }, 
         "7": {
             "annotation": "", 
+            "content_id": "toolshed.g2.bx.psu.edu/repos/devteam/bowtie2/bowtie2/2.2.6.2", 
             "id": 7, 
             "input_connections": {
                 "library|input_1": {
@@ -305,11 +363,25 @@
                     "output_name": "out"
                 }
             }, 
-            "inputs": [], 
+            "inputs": [
+                {
+                    "description": "runtime parameter for tool Bowtie2", 
+                    "name": "library"
+                }
+            ], 
+            "label": null, 
             "name": "Bowtie2", 
             "outputs": [
                 {
                     "name": "output_unaligned_reads_l", 
+                    "type": "fastqsanger"
+                }, 
+                {
+                    "name": "output_aligned_reads_l", 
+                    "type": "fastqsanger"
+                }, 
+                {
+                    "name": "output_aligned_reads_r", 
                     "type": "fastqsanger"
                 }, 
                 {
@@ -323,17 +395,36 @@
                 {
                     "name": "output_sam", 
                     "type": "sam"
+                }, 
+                {
+                    "name": "mapping_stats", 
+                    "type": "txt"
                 }
             ], 
             "position": {
-                "left": 1080, 
-                "top": 200
+                "left": 1072, 
+                "top": 294
             }, 
             "post_job_actions": {
+                "HideDatasetActionmapping_stats": {
+                    "action_arguments": {}, 
+                    "action_type": "HideDatasetAction", 
+                    "output_name": "mapping_stats"
+                }, 
                 "HideDatasetActionoutput": {
                     "action_arguments": {}, 
                     "action_type": "HideDatasetAction", 
                     "output_name": "output"
+                }, 
+                "HideDatasetActionoutput_aligned_reads_l": {
+                    "action_arguments": {}, 
+                    "action_type": "HideDatasetAction", 
+                    "output_name": "output_aligned_reads_l"
+                }, 
+                "HideDatasetActionoutput_aligned_reads_r": {
+                    "action_arguments": {}, 
+                    "action_type": "HideDatasetAction", 
+                    "output_name": "output_aligned_reads_r"
                 }, 
                 "HideDatasetActionoutput_sam": {
                     "action_arguments": {}, 
@@ -352,18 +443,26 @@
                 }
             }, 
             "tool_errors": null, 
-            "tool_id": "toolshed.g2.bx.psu.edu/repos/devteam/bowtie2/bowtie2/0.3", 
-            "tool_state": "{\"__page__\": 0, \"read_group\": \"{\\\"__current_case__\\\": 1, \\\"read_group_selector\\\": \\\"no\\\"}\", \"__rerun_remap_job_id__\": null, \"library\": \"{\\\"unaligned_file\\\": \\\"False\\\", \\\"type\\\": \\\"single\\\", \\\"__current_case__\\\": 0, \\\"input_1\\\": null}\", \"reference_genome\": \"{\\\"source\\\": \\\"indexed\\\", \\\"__current_case__\\\": 0, \\\"index\\\": {\\\"__class__\\\": \\\"UnvalidatedValue\\\", \\\"value\\\": \\\"hg19\\\"}}\", \"analysis_type\": \"{\\\"alignment_options\\\": {\\\"n_ceil\\\": \\\"L,0,0.15\\\", \\\"__current_case__\\\": 0, \\\"i\\\": \\\"S,1,0.50\\\", \\\"L\\\": \\\"18\\\", \\\"N\\\": \\\"1\\\", \\\"norc\\\": \\\"False\\\", \\\"nofw\\\": \\\"False\\\", \\\"align_mode\\\": {\\\"align_mode_selector\\\": \\\"end-to-end\\\", \\\"score_min_ete\\\": \\\"L,-0.6,-0.6\\\", \\\"__current_case__\\\": 0}, \\\"alignment_options_selector\\\": \\\"yes\\\", \\\"no_1mm_upfront\\\": \\\"False\\\", \\\"gbar\\\": \\\"4\\\", \\\"ignore_quals\\\": \\\"False\\\", \\\"dpad\\\": \\\"15\\\"}, \\\"effort_options\\\": {\\\"effort_options_selector\\\": \\\"yes\\\", \\\"R\\\": \\\"2\\\", \\\"D\\\": \\\"200\\\", \\\"__current_case__\\\": 0}, \\\"sam_options\\\": {\\\"sam_options_selector\\\": \\\"no\\\", \\\"__current_case__\\\": 1}, \\\"other_options\\\": {\\\"other_options_selector\\\": \\\"no\\\", \\\"__current_case__\\\": 1}, \\\"scoring_options\\\": {\\\"scoring_options_selector\\\": \\\"no\\\", \\\"__current_case__\\\": 1}, \\\"analysis_type_selector\\\": \\\"full\\\", \\\"reporting_options\\\": {\\\"k\\\": \\\"20\\\", \\\"reporting_options_selector\\\": \\\"k\\\", \\\"__current_case__\\\": 1}, \\\"__current_case__\\\": 1, \\\"sam_opt\\\": \\\"True\\\", \\\"input_options\\\": {\\\"input_options_selector\\\": \\\"no\\\", \\\"__current_case__\\\": 1}}\", \"chromInfo\": \"\\\"/home/john/galaxy-dist/tool-data/shared/ucsc/chrom/?.len\\\"\"}", 
-            "tool_version": "0.3", 
+            "tool_id": "toolshed.g2.bx.psu.edu/repos/devteam/bowtie2/bowtie2/2.2.6.2", 
+            "tool_shed_repository": {
+                "changeset_revision": "a9d4f71dbfb0", 
+                "name": "bowtie2", 
+                "owner": "devteam", 
+                "tool_shed": "toolshed.g2.bx.psu.edu"
+            }, 
+            "tool_state": "{\"__page__\": 0, \"__rerun_remap_job_id__\": null, \"library\": \"{\\\"aligned_file\\\": \\\"false\\\", \\\"unaligned_file\\\": \\\"false\\\", \\\"type\\\": \\\"single\\\", \\\"__current_case__\\\": 0, \\\"input_1\\\": {\\\"__class__\\\": \\\"RuntimeValue\\\"}}\", \"reference_genome\": \"{\\\"source\\\": \\\"indexed\\\", \\\"__current_case__\\\": 0, \\\"index\\\": \\\"hg19\\\"}\", \"rg\": \"{\\\"rg_selector\\\": \\\"do_not_set\\\", \\\"__current_case__\\\": 3}\", \"save_mapping_stats\": \"\\\"false\\\"\", \"analysis_type\": \"{\\\"alignment_options\\\": {\\\"n_ceil\\\": \\\"L,0,0.15\\\", \\\"alignment_options_selector\\\": \\\"yes\\\", \\\"i\\\": \\\"S,1,0.50\\\", \\\"L\\\": \\\"18\\\", \\\"N\\\": \\\"1\\\", \\\"norc\\\": \\\"false\\\", \\\"nofw\\\": \\\"false\\\", \\\"align_mode\\\": {\\\"align_mode_selector\\\": \\\"end-to-end\\\", \\\"score_min_ete\\\": \\\"L,-0.6,-0.6\\\", \\\"__current_case__\\\": 0}, \\\"__current_case__\\\": 0, \\\"no_1mm_upfront\\\": \\\"false\\\", \\\"gbar\\\": \\\"4\\\", \\\"ignore_quals\\\": \\\"false\\\", \\\"dpad\\\": \\\"15\\\"}, \\\"effort_options\\\": {\\\"effort_options_selector\\\": \\\"yes\\\", \\\"R\\\": \\\"2\\\", \\\"D\\\": \\\"200\\\", \\\"__current_case__\\\": 0}, \\\"sam_options\\\": {\\\"sam_options_selector\\\": \\\"no\\\", \\\"__current_case__\\\": 1}, \\\"other_options\\\": {\\\"other_options_selector\\\": \\\"no\\\", \\\"__current_case__\\\": 1}, \\\"scoring_options\\\": {\\\"scoring_options_selector\\\": \\\"no\\\", \\\"__current_case__\\\": 1}, \\\"analysis_type_selector\\\": \\\"full\\\", \\\"reporting_options\\\": {\\\"k\\\": \\\"20\\\", \\\"reporting_options_selector\\\": \\\"k\\\", \\\"__current_case__\\\": 1}, \\\"__current_case__\\\": 1, \\\"sam_opt\\\": \\\"true\\\", \\\"input_options\\\": {\\\"input_options_selector\\\": \\\"no\\\", \\\"__current_case__\\\": 1}}\", \"chromInfo\": \"\\\"/home/john/galaxy/tool-data/shared/ucsc/chrom/?.len\\\"\"}", 
+            "tool_version": "2.2.6.2", 
             "type": "tool", 
-            "user_outputs": []
+            "uuid": "3b73a9e0-640f-4cda-9286-cc60b5cbbc12", 
+            "workflow_outputs": []
         }, 
         "8": {
             "annotation": "", 
+            "content_id": "editsam", 
             "id": 8, 
             "input_connections": {
                 "bed": {
-                    "id": 2, 
+                    "id": 0, 
                     "output_name": "output"
                 }, 
                 "fastq": {
@@ -383,7 +482,29 @@
                     "output_name": "output_sam"
                 }
             }, 
-            "inputs": [], 
+            "inputs": [
+                {
+                    "description": "runtime parameter for tool Edit a SAM file", 
+                    "name": "prim"
+                }, 
+                {
+                    "description": "runtime parameter for tool Edit a SAM file", 
+                    "name": "sam"
+                }, 
+                {
+                    "description": "runtime parameter for tool Edit a SAM file", 
+                    "name": "fastq"
+                }, 
+                {
+                    "description": "runtime parameter for tool Edit a SAM file", 
+                    "name": "realign"
+                }, 
+                {
+                    "description": "runtime parameter for tool Edit a SAM file", 
+                    "name": "bed"
+                }
+            ], 
+            "label": null, 
             "name": "Edit a SAM file", 
             "outputs": [
                 {
@@ -400,8 +521,8 @@
                 }
             ], 
             "position": {
-                "left": 1300, 
-                "top": 200
+                "left": 1402, 
+                "top": 419
             }, 
             "post_job_actions": {
                 "HideDatasetActionalign_log": {
@@ -422,13 +543,15 @@
             }, 
             "tool_errors": null, 
             "tool_id": "editsam", 
-            "tool_state": "{\"__page__\": 0, \"prim\": \"null\", \"sam\": \"null\", \"fastq\": \"null\", \"log_opt\": \"\\\"False\\\"\", \"pct\": \"\\\"0.75\\\"\", \"realign\": \"{\\\"real\\\": null, \\\"realignlog_opt\\\": \\\"False\\\", \\\"pct\\\": \\\"0.75\\\", \\\"__current_case__\\\": 0, \\\"realign_opt\\\": \\\"yes\\\"}\", \"__rerun_remap_job_id__\": null, \"bed\": \"null\", \"chromInfo\": \"\\\"/home/john/galaxy-dist/tool-data/shared/ucsc/chrom/hg19.len\\\"\", \"gen\": \"{\\\"__class__\\\": \\\"UnvalidatedValue\\\", \\\"value\\\": \\\"/home/john/Downloads/Homo_sapiens/UCSC/hg19/Sequence/WholeGenomeFasta/genome.fa\\\"}\"}", 
-            "tool_version": "1.0.0", 
+            "tool_state": "{\"__page__\": 0, \"prim\": \"{\\\"__class__\\\": \\\"RuntimeValue\\\"}\", \"sam\": \"{\\\"__class__\\\": \\\"RuntimeValue\\\"}\", \"fastq\": \"{\\\"__class__\\\": \\\"RuntimeValue\\\"}\", \"log_opt\": \"\\\"false\\\"\", \"pct\": \"\\\"0.75\\\"\", \"realign\": \"{\\\"real\\\": {\\\"__class__\\\": \\\"RuntimeValue\\\"}, \\\"realignlog_opt\\\": \\\"false\\\", \\\"pct\\\": \\\"0.75\\\", \\\"__current_case__\\\": 0, \\\"realign_opt\\\": \\\"yes\\\"}\", \"__rerun_remap_job_id__\": null, \"bed\": \"{\\\"__class__\\\": \\\"RuntimeValue\\\"}\", \"chromInfo\": \"\\\"/home/john/galaxy/tool-data/shared/ucsc/chrom/hg19.len\\\"\", \"gen\": \"\\\"hg19\\\"\"}", 
+            "tool_version": "1.1", 
             "type": "tool", 
-            "user_outputs": []
+            "uuid": "907fa4df-2407-4f71-a3d5-43135e541e28", 
+            "workflow_outputs": []
         }, 
         "9": {
             "annotation": "", 
+            "content_id": "toolshed.g2.bx.psu.edu/repos/devteam/sam_to_bam/sam_to_bam/2.0", 
             "id": 9, 
             "input_connections": {
                 "source|input1": {
@@ -436,7 +559,13 @@
                     "output_name": "out"
                 }
             }, 
-            "inputs": [], 
+            "inputs": [
+                {
+                    "description": "runtime parameter for tool SAM-to-BAM", 
+                    "name": "source"
+                }
+            ], 
+            "label": null, 
             "name": "SAM-to-BAM", 
             "outputs": [
                 {
@@ -445,8 +574,8 @@
                 }
             ], 
             "position": {
-                "left": 1520, 
-                "top": 200
+                "left": 1702, 
+                "top": 455
             }, 
             "post_job_actions": {
                 "HideDatasetActionoutput1": {
@@ -456,14 +585,22 @@
                 }
             }, 
             "tool_errors": null, 
-            "tool_id": "toolshed.g2.bx.psu.edu/repos/devteam/sam_to_bam/sam_to_bam/1.1.4", 
-            "tool_state": "{\"source\": \"{\\\"index_source\\\": \\\"cached\\\", \\\"index\\\": {\\\"__class__\\\": \\\"UnvalidatedValue\\\", \\\"value\\\": \\\"Human (Homo sapiens): hg19\\\"}, \\\"input1\\\": null, \\\"__current_case__\\\": 0}\", \"__rerun_remap_job_id__\": null, \"chromInfo\": \"\\\"/home/john/galaxy-dist/tool-data/shared/ucsc/chrom/hg19.len\\\"\", \"__page__\": 0}", 
-            "tool_version": "1.1.4", 
+            "tool_id": "toolshed.g2.bx.psu.edu/repos/devteam/sam_to_bam/sam_to_bam/2.0", 
+            "tool_shed_repository": {
+                "changeset_revision": "d04d9f1c6791", 
+                "name": "sam_to_bam", 
+                "owner": "devteam", 
+                "tool_shed": "toolshed.g2.bx.psu.edu"
+            }, 
+            "tool_state": "{\"source\": \"{\\\"index_source\\\": \\\"cached\\\", \\\"index\\\": \\\"hg19\\\", \\\"input1\\\": {\\\"__class__\\\": \\\"RuntimeValue\\\"}, \\\"__current_case__\\\": 0}\", \"__rerun_remap_job_id__\": null, \"chromInfo\": \"\\\"/home/john/galaxy/tool-data/shared/ucsc/chrom/hg19.len\\\"\", \"__page__\": 0}", 
+            "tool_version": "2.0", 
             "type": "tool", 
-            "user_outputs": []
+            "uuid": "2c2d873a-78b2-4960-936c-1bca060f3f73", 
+            "workflow_outputs": []
         }, 
         "10": {
             "annotation": "", 
+            "content_id": "toolshed.g2.bx.psu.edu/repos/devteam/samtools_mpileup/samtools_mpileup/2.0", 
             "id": 10, 
             "input_connections": {
                 "reference_source|input_bams_0|input_bam": {
@@ -472,6 +609,7 @@
                 }
             }, 
             "inputs": [], 
+            "label": null, 
             "name": "MPileup", 
             "outputs": [
                 {
@@ -484,8 +622,8 @@
                 }
             ], 
             "position": {
-                "left": 1740, 
-                "top": 200
+                "left": 1894, 
+                "top": 446
             }, 
             "post_job_actions": {
                 "HideDatasetActionoutput_log": {
@@ -500,14 +638,22 @@
                 }
             }, 
             "tool_errors": null, 
-            "tool_id": "toolshed.g2.bx.psu.edu/repos/devteam/samtools_mpileup/samtools_mpileup/0.0.3", 
-            "tool_state": "{\"__page__\": 0, \"genotype_likelihood_computation_type\": \"{\\\"genotype_likelihood_computation_type_selector\\\": \\\"do_not_perform_genotype_likelihood_computation\\\", \\\"__current_case__\\\": 1}\", \"__rerun_remap_job_id__\": null, \"advanced_options\": \"{\\\"max_reads_per_bam\\\": \\\"100000\\\", \\\"advanced_options_selector\\\": \\\"advanced\\\", \\\"extended_BAQ_computation\\\": \\\"False\\\", \\\"region_string\\\": \\\"\\\", \\\"output_per_sample_strand_bias_p_value\\\": \\\"False\\\", \\\"minimum_base_quality\\\": \\\"0\\\", \\\"disable_probabilistic_realignment\\\": \\\"True\\\", \\\"skip_anomalous_read_pairs\\\": \\\"False\\\", \\\"minimum_mapping_quality\\\": \\\"0\\\", \\\"output_per_sample_read_depth\\\": \\\"False\\\", \\\"__current_case__\\\": 0, \\\"position_list\\\": null, \\\"coefficient_for_downgrading\\\": \\\"0\\\"}\", \"reference_source\": \"{\\\"ref_file\\\": {\\\"__class__\\\": \\\"UnvalidatedValue\\\", \\\"value\\\": \\\"Human (Homo sapiens): hg19\\\"}, \\\"reference_source_selector\\\": \\\"cached\\\", \\\"input_bams\\\": [{\\\"__index__\\\": 0, \\\"input_bam\\\": null}], \\\"__current_case__\\\": 0}\", \"chromInfo\": \"\\\"/home/john/galaxy-dist/tool-data/shared/ucsc/chrom/hg19.len\\\"\"}", 
-            "tool_version": "0.0.3", 
+            "tool_id": "toolshed.g2.bx.psu.edu/repos/devteam/samtools_mpileup/samtools_mpileup/2.0", 
+            "tool_shed_repository": {
+                "changeset_revision": "aa0ef6f0ee89", 
+                "name": "samtools_mpileup", 
+                "owner": "devteam", 
+                "tool_shed": "toolshed.g2.bx.psu.edu"
+            }, 
+            "tool_state": "{\"__page__\": 0, \"genotype_likelihood_computation_type\": \"{\\\"output_mapping_quality\\\": \\\"false\\\", \\\"__current_case__\\\": 1, \\\"genotype_likelihood_computation_type_selector\\\": \\\"do_not_perform_genotype_likelihood_computation\\\", \\\"base_position_on_reads\\\": \\\"false\\\"}\", \"__rerun_remap_job_id__\": null, \"advanced_options\": \"{\\\"max_reads_per_bam\\\": \\\"250\\\", \\\"advanced_options_selector\\\": \\\"advanced\\\", \\\"extended_BAQ_computation\\\": \\\"false\\\", \\\"region_string\\\": \\\"\\\", \\\"limit_by_region\\\": {\\\"limit_by_regions\\\": \\\"no_limit\\\", \\\"__current_case__\\\": 2}, \\\"disable_probabilistic_realignment\\\": \\\"true\\\", \\\"skip_anomalous_read_pairs\\\": \\\"false\\\", \\\"minimum_mapping_quality\\\": \\\"0\\\", \\\"filter_by_flags\\\": {\\\"__current_case__\\\": 1, \\\"filter_flags\\\": \\\"nofilter\\\"}, \\\"__current_case__\\\": 0, \\\"coefficient_for_downgrading\\\": \\\"0\\\", \\\"minimum_base_quality\\\": \\\"0\\\", \\\"ignore_overlaps\\\": \\\"false\\\", \\\"exclude_read_group\\\": {\\\"__current_case__\\\": 2, \\\"exclude_read_groups\\\": \\\"no_limit\\\"}}\", \"reference_source\": \"{\\\"ref_file\\\": \\\"hg19\\\", \\\"reference_source_selector\\\": \\\"cached\\\", \\\"input_bams\\\": [{\\\"__index__\\\": 0, \\\"input_bam\\\": {\\\"__class__\\\": \\\"RuntimeValue\\\"}}], \\\"__current_case__\\\": 0}\", \"chromInfo\": \"\\\"/home/john/galaxy/tool-data/shared/ucsc/chrom/hg19.len\\\"\"}", 
+            "tool_version": "2.0", 
             "type": "tool", 
-            "user_outputs": []
+            "uuid": "565230a5-81cd-4796-bde8-3efe6940d1d2", 
+            "workflow_outputs": []
         }, 
         "11": {
             "annotation": "", 
+            "content_id": "toolshed.g2.bx.psu.edu/repos/devteam/varscan_version_2/varscan/0.1", 
             "id": 11, 
             "input_connections": {
                 "input": {
@@ -515,7 +661,13 @@
                     "output_name": "output_mpileup"
                 }
             }, 
-            "inputs": [], 
+            "inputs": [
+                {
+                    "description": "runtime parameter for tool Varscan", 
+                    "name": "input"
+                }
+            ], 
+            "label": null, 
             "name": "Varscan", 
             "outputs": [
                 {
@@ -524,8 +676,8 @@
                 }
             ], 
             "position": {
-                "left": 1960, 
-                "top": 200
+                "left": 2149, 
+                "top": 403
             }, 
             "post_job_actions": {
                 "HideDatasetActionoutput": {
@@ -536,13 +688,21 @@
             }, 
             "tool_errors": null, 
             "tool_id": "toolshed.g2.bx.psu.edu/repos/devteam/varscan_version_2/varscan/0.1", 
-            "tool_state": "{\"strand_filter\": \"\\\"no\\\"\", \"min_coverage\": \"\\\"1\\\"\", \"sample_names\": \"\\\"\\\"\", \"min_avg_qual\": \"\\\"30\\\"\", \"__page__\": 0, \"__rerun_remap_job_id__\": null, \"cmd\": \"\\\"pileup2snp\\\"\", \"min_freq_for_hom\": \"\\\"0.75\\\"\", \"min_var_freq\": \"\\\"0.01\\\"\", \"p_value\": \"\\\"0.99\\\"\", \"input\": \"null\", \"chromInfo\": \"\\\"/home/john/galaxy-dist/tool-data/shared/ucsc/chrom/hg19.len\\\"\", \"min_supporting_reads\": \"\\\"2\\\"\"}", 
+            "tool_shed_repository": {
+                "changeset_revision": "44d514f3df8f", 
+                "name": "varscan_version_2", 
+                "owner": "devteam", 
+                "tool_shed": "toolshed.g2.bx.psu.edu"
+            }, 
+            "tool_state": "{\"strand_filter\": \"\\\"no\\\"\", \"min_coverage\": \"\\\"1\\\"\", \"cmd\": \"\\\"pileup2snp\\\"\", \"min_avg_qual\": \"\\\"30\\\"\", \"__page__\": 0, \"__rerun_remap_job_id__\": null, \"sample_names\": \"\\\"\\\"\", \"min_freq_for_hom\": \"\\\"0.75\\\"\", \"min_var_freq\": \"\\\"0.01\\\"\", \"p_value\": \"\\\"0.99\\\"\", \"input\": \"{\\\"__class__\\\": \\\"RuntimeValue\\\"}\", \"chromInfo\": \"\\\"/home/john/galaxy/tool-data/shared/ucsc/chrom/hg19.len\\\"\", \"min_supporting_reads\": \"\\\"2\\\"\"}", 
             "tool_version": "0.1", 
             "type": "tool", 
-            "user_outputs": []
+            "uuid": "37be13af-c3aa-44bb-a001-1b7c7816b8a0", 
+            "workflow_outputs": []
         }, 
         "12": {
             "annotation": "", 
+            "content_id": "toolshed.g2.bx.psu.edu/repos/devteam/varscan_version_2/varscan/0.1", 
             "id": 12, 
             "input_connections": {
                 "input": {
@@ -550,7 +710,13 @@
                     "output_name": "output_mpileup"
                 }
             }, 
-            "inputs": [], 
+            "inputs": [
+                {
+                    "description": "runtime parameter for tool Varscan", 
+                    "name": "input"
+                }
+            ], 
+            "label": null, 
             "name": "Varscan", 
             "outputs": [
                 {
@@ -559,8 +725,8 @@
                 }
             ], 
             "position": {
-                "left": 1960, 
-                "top": 320
+                "left": 2156, 
+                "top": 555
             }, 
             "post_job_actions": {
                 "HideDatasetActionoutput": {
@@ -571,17 +737,25 @@
             }, 
             "tool_errors": null, 
             "tool_id": "toolshed.g2.bx.psu.edu/repos/devteam/varscan_version_2/varscan/0.1", 
-            "tool_state": "{\"strand_filter\": \"\\\"no\\\"\", \"min_coverage\": \"\\\"1\\\"\", \"sample_names\": \"\\\"\\\"\", \"min_avg_qual\": \"\\\"30\\\"\", \"__page__\": 0, \"__rerun_remap_job_id__\": null, \"cmd\": \"\\\"pileup2indel\\\"\", \"min_freq_for_hom\": \"\\\"0.75\\\"\", \"min_var_freq\": \"\\\"0.01\\\"\", \"p_value\": \"\\\"0.99\\\"\", \"input\": \"null\", \"chromInfo\": \"\\\"/home/john/galaxy-dist/tool-data/shared/ucsc/chrom/hg19.len\\\"\", \"min_supporting_reads\": \"\\\"2\\\"\"}", 
+            "tool_shed_repository": {
+                "changeset_revision": "44d514f3df8f", 
+                "name": "varscan_version_2", 
+                "owner": "devteam", 
+                "tool_shed": "toolshed.g2.bx.psu.edu"
+            }, 
+            "tool_state": "{\"strand_filter\": \"\\\"no\\\"\", \"min_coverage\": \"\\\"1\\\"\", \"cmd\": \"\\\"pileup2indel\\\"\", \"min_avg_qual\": \"\\\"30\\\"\", \"__page__\": 0, \"__rerun_remap_job_id__\": null, \"sample_names\": \"\\\"\\\"\", \"min_freq_for_hom\": \"\\\"0.75\\\"\", \"min_var_freq\": \"\\\"0.01\\\"\", \"p_value\": \"\\\"0.99\\\"\", \"input\": \"{\\\"__class__\\\": \\\"RuntimeValue\\\"}\", \"chromInfo\": \"\\\"/home/john/galaxy/tool-data/shared/ucsc/chrom/hg19.len\\\"\", \"min_supporting_reads\": \"\\\"2\\\"\"}", 
             "tool_version": "0.1", 
             "type": "tool", 
-            "user_outputs": []
+            "uuid": "4935feb6-d7fb-4c53-b968-067769050666", 
+            "workflow_outputs": []
         }, 
         "13": {
             "annotation": "", 
+            "content_id": "makevcf", 
             "id": 13, 
             "input_connections": {
                 "filter|bedfile|bed": {
-                    "id": 2, 
+                    "id": 0, 
                     "output_name": "output"
                 }, 
                 "ind": {
@@ -597,7 +771,21 @@
                     "output_name": "output"
                 }
             }, 
-            "inputs": [], 
+            "inputs": [
+                {
+                    "description": "runtime parameter for tool Construct a VCF", 
+                    "name": "snp"
+                }, 
+                {
+                    "description": "runtime parameter for tool Construct a VCF", 
+                    "name": "ind"
+                }, 
+                {
+                    "description": "runtime parameter for tool Construct a VCF", 
+                    "name": "pil"
+                }
+            ], 
+            "label": null, 
             "name": "Construct a VCF", 
             "outputs": [
                 {
@@ -610,8 +798,8 @@
                 }
             ], 
             "position": {
-                "left": 2180, 
-                "top": 200
+                "left": 2354, 
+                "top": 415
             }, 
             "post_job_actions": {
                 "HideDatasetActionlog": {
@@ -622,12 +810,18 @@
             }, 
             "tool_errors": null, 
             "tool_id": "makevcf", 
-            "tool_state": "{\"__page__\": 0, \"addhp\": \"{\\\"log_opt\\\": \\\"False\\\", \\\"addhp_opt\\\": \\\"yes\\\", \\\"__current_case__\\\": 0, \\\"gen\\\": {\\\"__class__\\\": \\\"UnvalidatedValue\\\", \\\"value\\\": \\\"/home/john/Downloads/Homo_sapiens/UCSC/hg19/Sequence/WholeGenomeFasta/genome.fa\\\"}}\", \"__rerun_remap_job_id__\": null, \"lab\": \"\\\"sample\\\"\", \"filter\": \"{\\\"a\\\": \\\"0.0\\\", \\\"__current_case__\\\": 0, \\\"i\\\": \\\"0.0\\\", \\\"m\\\": \\\"0.0\\\", \\\"o\\\": \\\"0\\\", \\\"p\\\": \\\"\\\", \\\"bedfile\\\": {\\\"bed_opt\\\": \\\"yes\\\", \\\"bed\\\": null, \\\"__current_case__\\\": 0}, \\\"filter_opt\\\": \\\"yes\\\", \\\"d\\\": \\\"0\\\"}\", \"qual\": \"\\\"30\\\"\", \"snp\": \"null\", \"ind\": \"null\", \"pil\": \"null\", \"chromInfo\": \"\\\"/home/john/galaxy-dist/tool-data/shared/ucsc/chrom/hg19.len\\\"\"}", 
-            "tool_version": "1.0.0", 
+            "tool_state": "{\"__page__\": 0, \"addhp\": \"{\\\"log_opt\\\": \\\"false\\\", \\\"__current_case__\\\": 0, \\\"addhp_opt\\\": \\\"yes\\\", \\\"gen\\\": \\\"hg19\\\"}\", \"__rerun_remap_job_id__\": null, \"lab\": \"\\\"sample\\\"\", \"filter\": \"{\\\"a\\\": \\\"0.0\\\", \\\"filter_opt\\\": \\\"yes\\\", \\\"i\\\": \\\"0.0\\\", \\\"m\\\": \\\"0.0\\\", \\\"o\\\": \\\"0\\\", \\\"p\\\": \\\"\\\", \\\"bedfile\\\": {\\\"bed_opt\\\": \\\"yes\\\", \\\"bed\\\": {\\\"__class__\\\": \\\"RuntimeValue\\\"}, \\\"__current_case__\\\": 0}, \\\"__current_case__\\\": 0, \\\"d\\\": \\\"0\\\"}\", \"qual\": \"\\\"30\\\"\", \"snp\": \"{\\\"__class__\\\": \\\"RuntimeValue\\\"}\", \"ind\": \"{\\\"__class__\\\": \\\"RuntimeValue\\\"}\", \"pil\": \"{\\\"__class__\\\": \\\"RuntimeValue\\\"}\", \"chromInfo\": \"\\\"/home/john/galaxy/tool-data/shared/ucsc/chrom/hg19.len\\\"\"}", 
+            "tool_version": "1.1", 
             "type": "tool", 
-            "user_outputs": []
+            "uuid": "25267c62-8cf7-49a5-9b4a-0c49fcd54b40", 
+            "workflow_outputs": [
+                {
+                    "label": null, 
+                    "output_name": "out", 
+                    "uuid": "6f524d60-6770-4e9d-8d64-e05b94016efa"
+                }
+            ]
         }
     }, 
-    "uuid": "725b521e-0d1b-4f46-adba-489873feb939"
+    "uuid": "9dd2f5c2-4d5c-43b1-b94a-fe667a3e2862"
 }
-
